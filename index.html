@@ -106,15 +106,24 @@
     .controls {
       display:flex; flex-wrap:wrap; gap:14px;
       justify-content:center; margin:0 0 24px;
-      position:sticky; top:0; z-index:100;
+      position:fixed; top:0; left:0; right:0; z-index:100;
       background:rgba(255,255,255,0.96);
       backdrop-filter:blur(8px);
-      border-radius:14px;
+      border-radius:0 0 14px 14px;
       box-shadow:0 2px 12px rgba(33,150,243,0.09);
       padding:12px 0 6px;
       width:100vw;
       max-width:100vw;
+      transition:transform 0.35s cubic-bezier(.4,2,.6,1);
+      will-change: transform;
     }
+    .controls.hide {
+      transform: translateY(-120%);
+    }
+    .controls.show {
+      transform: translateY(0);
+    }
+    body { padding-top: 70px; } /* prevent content from being hidden under fixed bar */
     .controls button {
       font-size:1.08rem; font-family:'Inter',Arial,sans-serif;
       padding:13px 24px;
@@ -484,6 +493,33 @@
       speechSynthesis.cancel();
       speechSynthesis.speak(u);
     }
+
+    // HIDE/SHOW CONTROLS ON SCROLL
+    let lastScrollY = window.scrollY;
+    let controlsBar = document.querySelector('.controls');
+    let ticking = false;
+    function onScroll() {
+      if (!controlsBar) controlsBar = document.querySelector('.controls');
+      if (!controlsBar) return;
+      if (window.scrollY > lastScrollY && window.scrollY > 30) {
+        controlsBar.classList.add('hide');
+        controlsBar.classList.remove('show');
+      } else {
+        controlsBar.classList.remove('hide');
+        controlsBar.classList.add('show');
+      }
+      lastScrollY = window.scrollY;
+    }
+    window.addEventListener('scroll', function(){
+      if (!ticking) {
+        window.requestAnimationFrame(function() {
+          onScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+    if (controlsBar) controlsBar.classList.add('show');
 
     // FLIP & CONTROLS
     function shuffleFlashcards() {
