@@ -400,9 +400,10 @@
       }
       let sel = document.getElementById(lang+'VoiceSelect');
       let voiceURI = sel ? sel.value : null;
-      let voice = voices.find(v=>v.voiceURI===voiceURI && v.lang.startsWith(lang));
+      let voice = voices.find(v=>v.voiceURI===voiceURI)
+           || voices.find(v=>v.lang.startsWith(lang));
       if(!voice) {
-        alert('No matching voice found for ' + lang + '. Please check your voice selection.');
+        alert('No matching voice found for ' + lang);
         return;
       }
       const u = new SpeechSynthesisUtterance(text);
