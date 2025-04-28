@@ -479,16 +479,36 @@
     window.onload = populateVoices; 
 
     function readAloud(text, lang){
-      if(document.getElementById(lang+'Mute').checked) return;
-      if(!('speechSynthesis' in window)){ alert('TTS not supported'); return; }
-      let voiceURI = document.getElementById(lang+'VoiceSelect').value;
+      const muteBox = document.getElementById(lang+'Mute');
+      if (muteBox && muteBox.checked) {
+        console.log('Mute is on for', lang);
+        return;
+      }
+      if(!('speechSynthesis' in window)){
+        alert('Text-to-speech is not supported in this browser.');
+        return;
+      }
+      // Ensure voices are loaded
+      if (!voices || voices.length === 0) {
+        voices = speechSynthesis.getVoices();
+        if (!voices || voices.length === 0) {
+          alert('No speech voices available.');
+          return;
+        }
+      }
+      let sel = document.getElementById(lang+'VoiceSelect');
+      let voiceURI = sel ? sel.value : null;
       let voice = voices.find(v=>v.voiceURI===voiceURI)
                || voices.find(v=>v.lang.startsWith(lang==='arabic'?'ar':lang==='english'?'en':'fr'));
-      if(!voice) return;
+      if(!voice) {
+        alert('No matching voice found for ' + lang);
+        return;
+      }
       const u = new SpeechSynthesisUtterance(text);
       u.voice = voice; u.lang = voice.lang;
       speechSynthesis.cancel();
       speechSynthesis.speak(u);
+      console.log('Speaking:', text, 'with voice', voice.name, 'for', lang);
     }
 
     // HIDE/SHOW CONTROLS ON SCROLL
