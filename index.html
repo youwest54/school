@@ -202,6 +202,10 @@
 </head>
 <body>
   <h1>Arabic-English-French Flashcards</h1>
+  <div style="background:#fffbe7;border-radius:12px;padding:12px 16px;margin:0 auto 16px auto;max-width:600px;font-size:1.04rem;color:#8d6708;text-align:center;box-shadow:0 2px 12px rgba(255,223,80,0.08);">
+    <b>iPhone/iPad Voice Info:</b> The voice used is the default set in <b>Settings &gt; Accessibility &gt; Spoken Content &gt; Voices</b>.<br>
+    To use “Samantha” (English) or “Thomas” (French), set them as your system defaults in iOS settings.
+  </div>
   <div class="voices-select">
     <div>
       <label for="arabicVoiceSelect">Arabic Voice:</label>
@@ -396,10 +400,9 @@
       }
       let sel = document.getElementById(lang+'VoiceSelect');
       let voiceURI = sel ? sel.value : null;
-      let voice = voices.find(v=>v.voiceURI===voiceURI)
-               || voices.find(v=>v.lang.startsWith(lang==='arabic'?'ar':lang==='english'?'en':'fr'));
+      let voice = voices.find(v=>v.voiceURI===voiceURI && v.lang.startsWith(lang));
       if(!voice) {
-        alert('No matching voice found for ' + lang);
+        alert('No matching voice found for ' + lang + '. Please check your voice selection.');
         return;
       }
       const u = new SpeechSynthesisUtterance(text);
@@ -477,7 +480,8 @@
       const sel = state==='arabic'? '.flashcard-middle p'
                 : state==='english'? '.flashcard-back p'
                 : '.flashcard-front p';
-      readAloud(inner.querySelector(sel).textContent, state==='arabic'?'en':state==='english'?'fr':'ar');
+      const langMap = { arabic: 'ar', english: 'en', french: 'fr' };
+      readAloud(inner.querySelector(sel).textContent, langMap[next]);
     }
     function shuffleFlashcards(){
       const c = document.getElementById('flashcardsContainer');
