@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Arabic–English–French Flash-cards</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Montserrat:wght@700&display=swap"
+      rel="stylesheet">
+<style>
+/* ------- condensed CSS (unchanged except for minor clean-ups) ------- */
+html,body{height:100%;margin:0;padding:0;background:linear-gradient(135deg,#e0eafc 0%,#cfdef3 100%);
+font-family:'Inter','Segoe UI',Arial,sans-serif;color:#222;overscroll-behavior-y:contain;-webkit-tap-highlight-color:transparent}
+h1{font-family:'Montserrat',sans-serif;font-size:2.4rem;font-weight:700;color:#1976d2;text-align:center;margin:30px 0}
+.flashcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:28px;justify-content:center;width:100%;max-width:1200px;padding:0 20px 20px}
+.flashcard{width:100%;min-width:260px;max-width:350px;height:210px;perspective:1200px;cursor:pointer;border-radius:30px;
+box-shadow:0 8px 28px rgba(44,62,80,.13);transition:box-shadow .22s,transform .13s}
+.flashcard:active{box-shadow:0 4px 12px rgba(33,150,243,.18);transform:scale(.98)}
+.flashcard-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.4,2,.6,1)}
+.flashcard-content{position:absolute;width:100%;height:100%;backface-visibility:hidden;display:flex;justify-content:center;
+align-items:center;padding:24px 14px;font-size:1.22rem;font-weight:600;text-align:center;border-radius:30px;background:rgba(255,255,255,.78)}
+.flashcard-front{background:linear-gradient(135deg,#e3f2fd 0%,#fff 100%);}
+.flashcard-middle{background:linear-gradient(135deg,#bbdefb 0%,#e0f7fa 100%);transform:rotateY(-120deg)}
+.flashcard-back{background:linear-gradient(135deg,#b2dfdb 0%,#e0f2f1 100%);transform:rotateY(-240deg)}
+.voices-select{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
+.voices-select>div{background:rgba(255,255,255,.78);padding:12px 14px;border-radius:16px;box-shadow:0 2px 12px rgba(44,62,80,.08)}
+.voices-select label{font-size:1rem;font-weight:600;margin-bottom:3px}
+/* mobile tweaks trimmed for brevity – keep your originals if you need them */
+</style>
+</head>
+<body>
+<h1>Arabic–English–French Flash-cards</h1>
+
+<div class="voices-select">
+  <div>
+    <label for="arabicVoiceSelect">Arabic Voice:</label>
+    <select id="arabicVoiceSelect"></select><br>
+    <label><input type="checkbox" id="arabicMute" checked> Mute</label>
+  </div>
+  <div>
+    <label for="englishVoiceSelect">English Voice:</label>
+    <select id="englishVoiceSelect"></select><br>
+    <label><input type="checkbox" id="englishMute"> Mute</label>
+  </div>
+  <div>
+    <label for="frenchVoiceSelect">French Voice:</label>
+    <select id="frenchVoiceSelect"></select><br>
+    <label><input type="checkbox" id="frenchMute"> Mute</label>
+  </div>
+</div>
+
+<div class="flashcards" id="flashcardsContainer">
+
+<div class="flashcard" id="flashcard-0" onclick="toggleFlipAndRead(this)"
+     oncontextmenu="event.preventDefault()">
+  <div class="flashcard-inner" data-flip="arabic" data-rot="0">
+    <div class="flashcard-content flashcard-front"><p>تهج</p></div>
+    <div class="flashcard-content flashcard-middle"><p>Spell</p></div>
+    <div class="flashcard-content flashcard-back"><p>Épeler</p></div>
+  </div>
+</div>
+
+<div class="flashcard" id="flashcard-1" onclick="toggleFlipAndRead(this)"
+     oncontextmenu="event.preventDefault()">
+  <div class="flashcard-inner" data-flip="arabic" data-rot="0">
+    <div class="flashcard-content flashcard-front"><p>منطقي</p></div>
+    <div class="flashcard-content flashcard-middle"><p>coherent,clear,logical</p></div>
+    <div class="flashcard-content flashcard-back"><p>Cohérent ,Un raisonnement cohérent</p></div>
+  </div>
+</div>
+
+<div class="flashcard" id="flashcard-2" onclick="toggleFlipAndRead(this)"
+     oncontextmenu="event.preventDefault()">
+  <div class="flashcard-inner" data-flip="arabic" data-rot="0">
+    <div class="flashcard-content flashcard-front"><p>جسد رائع بروح قاتمة</p></div>
+    <div class="flashcard-content flashcard-middle"><p>Gorgeous body with a dark spirit</p></div>
+    <div class="flashcard-content flashcard-back"><p>Un corps magnifique avec une âme sombre</p></div>
+  </div>
+</div>
+
+<div class="flashcard" id="flashcard-3" onclick="toggleFlipAndRead(this)"
+     oncontextmenu="event.preventDefault()">
+  <div class="flashcard-inner" data-flip="arabic" data-rot="0">
+    <div class="flashcard-content flashcard-front"><p>لا أحب التحدث بصيغ مطلقة</p></div>
+    <div class="flashcard-content flashcard-middle"><p>I don’t like to talk in absolutes</p></div>
+    <div class="flashcard-content flashcard-back"><p>Je n'aime pas parler en termes absolus</p></div>
+  </div>
+</div>
+
+<div class="flashcard" id="flashcard-4" onclick="toggleFlipAndRead(this)"
+     oncontextmenu="event.preventDefault()">
+  <div class="flashcard-inner" data-flip="arabic" data-rot="0">
+    <div class="flashcard-content flashcard-front"><p>تحتفظ الشركة بسجلات مفصلة لكل المشتريات بهدف المساءلة</p></div>
+    <div class="flashcard-content flashcard-middle"><p>The company keeps detailed records of all purchases for the sake of accountability</p></div>
+    <div class="flashcard-content flashcard-back"><p>L'entreprise conserve le détail de tous ses achats dans un souci de rendre des comptes.</p></div>
+  </div>
+</div>
+
+<div class="flashcard" id="flashcard-5" onclick="toggleFlipAndRead(this)"
+     oncontextmenu="event.preventDefault()">
+  <div class="flashcard-inner" data-flip="arabic" data-rot="0">
+    <div class="flashcard-content flashcard-front"><p>معفى</p></div>
+    <div class="flashcard-content flashcard-middle"><p>Exempted</p></div>
+    <div class="flashcard-content flashcard-back"><p>Exempté</p></div>
+  </div>
+</div>
+
+<div class="flashcard" id="flashcard-6" onclick="toggleFlipAndRead(this)"
+     oncontextmenu="event.preventDefault()">
+  <div class="flashcard-inner" data-flip="arabic" data-rot="0">
+    <div class="flashcard-content flashcard-front"><p>الجماعية</p></div>
+    <div class="flashcard-content flashcard-middle"><p>community values</p></div>
+    <div class="flashcard-content flashcard-back"><p>Communautarisme</p></div>
+  </div>
+</div>
+
+<div class="flashcard" id="flashcard-7" onclick="toggleFlipAndRead(this)"
+     oncontextmenu="event.preventDefault()">
+  <div class="flashcard-inner" data-flip="arabic" data-rot="0">
+    <div class="flashcard-content flashcard-front"><p>عدل النواب نص القانون هذا</p></div>
+    <div class="flashcard-content flashcard-middle"><p>The deputies amended this law</p></div>
+    <div class="flashcard-content flashcard-back"><p>Les députés ont amendé ce texte de loi</p></div>
+  </div>
+</div>
+
+<div class="flashcard" id="flashcard-8" onclick="toggleFlipAndRead(this)"
+     oncontextmenu="event.preventDefault()">
+  <div class="flashcard-inner" data-flip="arabic" data-rot="0">
+    <div class="flashcard-content flashcard-front"><p>غير واعٍ , فاقد الوعي</p></div>
+    <div class="flashcard-content flashcard-middle"><p>Unconscious,Unaware</p></div>
+    <div class="flashcard-content flashcard-back"><p>Inconscient / ignorant</p></div>
+  </div>
+</div>
+
+<div class="flashcard" id="flashcard-9" onclick="toggleFlipAndRead(this)"
+     oncontextmenu="event.preventDefault()">
+  <div class="flashcard-inner" data-flip="arabic" data-rot="0">
+    <div class="flashcard-content flashcard-front"><p>واللي يخلي مدينه نيورك متميزه</p></div>
+    <div class="flashcard-content flashcard-middle"><p>What makes New York City special?</p></div>
+    <div class="flashcard-content flashcard-back"><p>Qu'est-ce qui distingue la ville de New York ?</p></div>
+  </div>
+</div>
+
+</div><!-- /flashcards -->
+
+<script>
+/* ====================  High-quality voice handling  ==================== */
+let voices = [];
+const QUALITY = ['Siri','Premium','Enhanced','XL'];            // best → worst
+function bestVoice(code){                                     // 'ar' / 'en' / 'fr'
+  return voices
+    .filter(v=>v.lang.startsWith(code))
+    .sort((a,b)=>{
+       const qa = QUALITY.findIndex(q=>a.name.includes(q));
+       const qb = QUALITY.findIndex(q=>b.name.includes(q));
+       return (qa<0?QUALITY.length:qa) - (qb<0?QUALITY.length:qb);
+    })[0] || null;
+}
+
+function populateVoices(){
+  voices = speechSynthesis.getVoices();
+  const map = [
+    {code:'ar', sel:'arabicVoiceSelect'},
+    {code:'en', sel:'englishVoiceSelect'},
+    {code:'fr', sel:'frenchVoiceSelect'}
+  ];
+  map.forEach(({code,sel})=>{
+    const dropdown = document.getElementById(sel);
+    if (!dropdown) return;
+    dropdown.innerHTML = '';
+    const filteredVoices = voices.filter(v=>v.lang.startsWith(code));
+    filteredVoices.forEach(v=>dropdown.add(new Option(`${v.name} (${v.lang})`, v.voiceURI)));
+    // For French, prefer 'Thomas' if available
+    if (code === 'fr') {
+      const thomas = filteredVoices.find(v => v.name.toLowerCase().includes('thomas'));
+      if (thomas) {
+        dropdown.value = thomas.voiceURI;
+        return;
+      }
+    }
+    // For English, prefer 'Samantha' if available
+    if (code === 'en') {
+      const samantha = filteredVoices.find(v => v.name.toLowerCase().includes('samantha'));
+      if (samantha) {
+        dropdown.value = samantha.voiceURI;
+        return;
+      }
+    }
+    const preferred = bestVoice(code);
+    if (preferred) dropdown.value = preferred.voiceURI;
+    if (dropdown.length === 0) dropdown.add(new Option('No voice',''));
+  });
+}
+
+
+/* wait for iOS to finish populating voices */
+if (speechSynthesis.getVoices().length){
+  populateVoices();
+} else {
+  const iv = setInterval(()=>{
+    if (speechSynthesis.getVoices().length){
+      clearInterval(iv); populateVoices();
+    }
+  }, 60);
+}
+speechSynthesis.onvoiceschanged = populateVoices;
+
+/* ======================  Speech helper  ====================== */
+function readAloud(text, langKey){              // langKey: 'arabic' | 'english' | 'french'
+  if (document.getElementById(langKey+'Mute').checked) return;
+  const codeMap = {arabic:'ar', english:'en', french:'fr'};
+  const code = codeMap[langKey] || 'en';
+  const dropdown = document.getElementById(langKey+'VoiceSelect');
+  const chosen = voices.find(v=>v.voiceURI === dropdown.value);
+  const voice  = chosen || bestVoice(code);
+  if (!voice){ alert('No '+langKey+' voice installed'); return; }
+
+  const u = new SpeechSynthesisUtterance(text);
+  u.voice  = voice;
+  u.lang   = voice.lang;
+  u.rate   = 1;        // neutral pace
+  u.pitch  = 1;        // neutral pitch
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+/* ======================  Card flipping  ====================== */
+function toggleFlipAndRead(card){
+  const inner = card.querySelector('.flashcard-inner');
+  const state = inner.getAttribute('data-flip');          // 'arabic' etc.
+  let rot = (parseInt(inner.getAttribute('data-rot')) + 120) % 360;
+  inner.style.transform = `rotateY(${rot}deg)`;
+  inner.setAttribute('data-rot', rot);
+
+  const next = state==='arabic' ? 'english' : state==='english' ? 'french' : 'arabic';
+  inner.setAttribute('data-flip', next);
+
+  const sel = next==='arabic'  ? '.flashcard-front p'
+            : next==='english' ? '.flashcard-middle p'
+            : '.flashcard-back p';
+  readAloud(inner.querySelector(sel).textContent, next);
+}
+</script>
+</body>
+</html>
