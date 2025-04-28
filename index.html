@@ -335,55 +335,7 @@
     let voices = [];
     function populateVoices() {
       voices = speechSynthesis.getVoices();
-      // ENGLISH: Prefer Samantha, then Google, then female
-      const enSel = document.getElementById('englishVoiceSelect');
-      if (enSel) {
-        enSel.innerHTML = '';
-        let filtered = voices.filter(v=>v.lang.startsWith('en'));
-        let preferred = filtered.filter(v=>v.name.includes('Samantha'));
-        if (preferred.length === 0) preferred = filtered.filter(v=>v.name.toLowerCase().includes('google') && v.name.toLowerCase().includes('female'));
-        if (preferred.length === 0) preferred = filtered.filter(v=>v.name.toLowerCase().includes('female'));
-        if (preferred.length === 0) preferred = filtered;
-        preferred.forEach(v=>{
-          const o = new Option(v.name+' ('+v.lang+')', v.voiceURI);
-          enSel.add(o);
-        });
-        if (enSel.options.length === 0) {
-          const o = new Option('No natural English voice available', '');
-          enSel.add(o);
-        }
-        for (let i = 0; i < enSel.options.length; i++) {
-          if (enSel.options[i].text.includes('Samantha') || enSel.options[i].text.toLowerCase().includes('google') || enSel.options[i].text.toLowerCase().includes('female')) {
-            enSel.selectedIndex = i;
-            break;
-          }
-        }
-      }
-      // FRENCH: Prefer Thomas, then Google, then female
-      const frSel = document.getElementById('frenchVoiceSelect');
-      if (frSel) {
-        frSel.innerHTML = '';
-        let filtered = voices.filter(v=>v.lang.startsWith('fr'));
-        let preferred = filtered.filter(v=>v.name.includes('Thomas'));
-        if (preferred.length === 0) preferred = filtered.filter(v=>v.name.toLowerCase().includes('google') && v.name.toLowerCase().includes('female'));
-        if (preferred.length === 0) preferred = filtered.filter(v=>v.name.toLowerCase().includes('female'));
-        if (preferred.length === 0) preferred = filtered;
-        preferred.forEach(v=>{
-          const o = new Option(v.name+' ('+v.lang+')', v.voiceURI);
-          frSel.add(o);
-        });
-        if (frSel.options.length === 0) {
-          const o = new Option('No natural French voice available', '');
-          frSel.add(o);
-        }
-        for (let i = 0; i < frSel.options.length; i++) {
-          if (frSel.options[i].text.includes('Thomas') || frSel.options[i].text.toLowerCase().includes('google') || frSel.options[i].text.toLowerCase().includes('female')) {
-            frSel.selectedIndex = i;
-            break;
-          }
-        }
-      }
-      // ARABIC: Just show all Arabic voices
+      // For each language, just list all voices for that language in the dropdown
       const arSel = document.getElementById('arabicVoiceSelect');
       if (arSel) {
         arSel.innerHTML = '';
@@ -394,6 +346,30 @@
         if (arSel.options.length === 0) {
           const o = new Option('No Arabic voice available', '');
           arSel.add(o);
+        }
+      }
+      const enSel = document.getElementById('englishVoiceSelect');
+      if (enSel) {
+        enSel.innerHTML = '';
+        voices.filter(v=>v.lang.startsWith('en')).forEach(v=>{
+          const o = new Option(v.name+' ('+v.lang+')', v.voiceURI);
+          enSel.add(o);
+        });
+        if (enSel.options.length === 0) {
+          const o = new Option('No English voice available', '');
+          enSel.add(o);
+        }
+      }
+      const frSel = document.getElementById('frenchVoiceSelect');
+      if (frSel) {
+        frSel.innerHTML = '';
+        voices.filter(v=>v.lang.startsWith('fr')).forEach(v=>{
+          const o = new Option(v.name+' ('+v.lang+')', v.voiceURI);
+          frSel.add(o);
+        });
+        if (frSel.options.length === 0) {
+          const o = new Option('No French voice available', '');
+          frSel.add(o);
         }
       }
     }
