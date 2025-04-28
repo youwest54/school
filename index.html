@@ -106,12 +106,14 @@
     .controls {
       display:flex; flex-wrap:wrap; gap:14px;
       justify-content:center; margin:0 0 24px;
-      position:sticky; top:0; z-index:2;
-      background:rgba(255,255,255,0.6);
-      backdrop-filter:blur(6px);
+      position:sticky; top:0; z-index:100;
+      background:rgba(255,255,255,0.96);
+      backdrop-filter:blur(8px);
       border-radius:14px;
-      box-shadow:0 2px 12px rgba(33,150,243,0.06);
+      box-shadow:0 2px 12px rgba(33,150,243,0.09);
       padding:12px 0 6px;
+      width:100vw;
+      max-width:100vw;
     }
     .controls button {
       font-size:1.08rem; font-family:'Inter',Arial,sans-serif;
@@ -447,9 +449,28 @@
             sel.add(o);
           });
       });
+      // Set English default to Samantha, French to Thomas if available
+      const enSel = document.getElementById('englishVoiceSelect');
+      const frSel = document.getElementById('frenchVoiceSelect');
+      if (enSel && voices.length) {
+        for (let i = 0; i < enSel.options.length; i++) {
+          if (enSel.options[i].text.includes('Samantha')) {
+            enSel.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      if (frSel && voices.length) {
+        for (let i = 0; i < frSel.options.length; i++) {
+          if (frSel.options[i].text.includes('Thomas')) {
+            frSel.selectedIndex = i;
+            break;
+          }
+        }
+      }
     }
     speechSynthesis.onvoiceschanged = populateVoices;
-    window.onload = populateVoices;
+    window.onload = populateVoices; 
 
     function readAloud(text, lang){
       if(document.getElementById(lang+'Mute').checked) return;
@@ -465,6 +486,32 @@
     }
 
     // FLIP & CONTROLS
+    function shuffleFlashcards() {
+      const container = document.getElementById('flashcardsContainer');
+      const cards = Array.from(container.children);
+      for (let i = cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        container.appendChild(cards[j]);
+      }
+    }
+    function flipAllToArabic() {
+      document.querySelectorAll('.flashcard-inner').forEach(inner => {
+        inner.style.transform = '';
+        inner.setAttribute('data-flip-state', 'arabic');
+      });
+    }
+    function flipAllToEnglish() {
+      document.querySelectorAll('.flashcard-inner').forEach(inner => {
+        inner.style.transform = 'rotateY(120deg)';
+        inner.setAttribute('data-flip-state', 'english');
+      });
+    }
+    function flipAllToFrench() {
+      document.querySelectorAll('.flashcard-inner').forEach(inner => {
+        inner.style.transform = 'rotateY(240deg)';
+        inner.setAttribute('data-flip-state', 'french');
+      });
+    }
     function toggleFlipAndRead(card){
       const inner = card.querySelector('.flashcard-inner');
       let state = inner.getAttribute('data-flip-state');
