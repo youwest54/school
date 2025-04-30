@@ -3,8 +3,8 @@ self.addEventListener('install', e => {
     caches.open('v1').then(cache => cache.addAll([
       './',
       './index.html',
-      './icons/icon-192.png',
-      './icons/icon-512.png'
+      'icons/icon-192.png',
+      'icons/icon-512.png'
     ]))
   );
 });
