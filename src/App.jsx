@@ -181,6 +181,27 @@ function AddFlashcards({ cards, setCards }) {
   return (
     <div className="add-flashcards-desktop">
       <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 18, color: '#1976d2', letterSpacing: 1 }}>Add Flashcards</h2>
+      <div style={{ marginBottom: 18, background: '#f9fbe7', borderRadius: 8, padding: 12 }}>
+        <label htmlFor="bulk-flashcard-input" style={{ fontWeight: 600, display: 'block', marginBottom: 6 }}>
+          Paste multiple flashcards (Arabic [Tab] English [Tab] French, one per line):
+        </label>
+        <textarea
+          id="bulk-flashcard-input"
+          value={bulk}
+          onChange={e => setBulk(e.target.value)}
+          rows={5}
+          style={{ width: '100%', fontSize: 16, padding: 8, borderRadius: 6, marginBottom: 8, border: '1px solid #ddd', resize: 'vertical' }}
+          placeholder={"مثال:\nدقيق\tAccurate\tPrécis\nضالم أو مظلوم\tOppressor or oppressed\tOppresseur ou opprimé"}
+        />
+        <button
+          type="button"
+          style={{ background: '#43a047', color: '#fff', borderRadius: 6, fontWeight: 600, fontSize: 15, padding: '8px 16px', cursor: 'pointer', marginTop: 4 }}
+          onClick={handleBulkAdd}
+          disabled={!bulk.trim()}
+        >
+          Add Multiple Flashcards
+        </button>
+      </div>
       {/* Settings Panel */}
       <div style={{ background: '#f1f8e9', padding: 18, borderRadius: 8, marginBottom: 24, boxShadow: '0 1px 4px #0001' }}>
         <h3 style={{ color: '#388e3c', fontWeight: 600, fontSize: 19, margin: 0, marginBottom: 10 }}>Settings</h3>
@@ -386,9 +407,25 @@ function PlayFlashcards({ cards, setCards }) {
 
 function App() {
   const [page, setPage] = useState('add'); // 'add' or 'play'
+  const defaultCards = [
+    { arabic: "دقيق", english: "Accurate", french: "Précis", remembered: false },
+    { arabic: "ضالم أو مظلوم", english: "Oppressor or oppressed", french: "Oppresseur ou opprimé", remembered: false },
+    { arabic: "حضانة الأطفال بعد الطلاق", english: "Child Custody", french: "La garde des enfants après divorce", remembered: false },
+    { arabic: "مجاري", english: "Sewers", french: "Égouts", remembered: false },
+    { arabic: "هضم", english: "Digestion", french: "Digestion", remembered: false },
+    { arabic: "أنا كنت على وشك أن أصاب بسيارة", english: "I almost got hit by a car.", french: "J'étais sur le point de me faire renverser", remembered: false },
+    { arabic: "كنت قريبًا من أن أصاب بسيارة", english: "I was this close to being hit by a car.", french: "J'étais si près d'être percuté par une voiture", remembered: false },
+    { arabic: "مغترب", english: "Expatriate", french: "Expatrié", remembered: false },
+    { arabic: "كرة القدم يمكن أن تزيد الناتج المحلي", english: "Football can increase GDP by 2% to 5%.", french: "Le football peut augmenter le PIB de 2% à 5%.", remembered: false },
+    { arabic: "أين يمكن أن أجد ذلك؟", english: "Where can I find it?", french: "Où est-ce que je peux en trouver ?", remembered: false },
+    { arabic: "تنوع", english: "Variety", french: "Variété", remembered: false },
+    { arabic: "أبعده قدر الإمكان", english: "Keep him as far away as possible", french: "Éloigne-le autant que possible", remembered: false },
+    { arabic: "مراقبة الأنشطة", english: "Monitoring activities", french: "Suivi des activités", remembered: false },
+    { arabic: "جرح", english: "Wound", french: "Blessure", remembered: false }
+  ];
   const [cards, setCards] = useState(() => {
     const saved = localStorage.getItem('flashcard_cards');
-    return saved ? JSON.parse(saved) : [];
+    return saved ? JSON.parse(saved) : defaultCards;
   });
 
   useEffect(() => {
@@ -406,7 +443,24 @@ function App() {
         </button>
       </div>
       {page === 'add' ? (
-        <AddFlashcards cards={cards} setCards={setCards} />
+        <>
+          <button
+            style={{ marginBottom: 16, background: '#43a047', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 'bold', fontSize: 16 }}
+            onClick={() => {
+              // Only add cards that are not already present (by arabic, english, french)
+              setCards(prevCards => {
+                const existing = new Set(prevCards.map(card => card.arabic + card.english + card.french));
+                const newCards = defaultCards.filter(card => !existing.has(card.arabic + card.english + card.french));
+                const updated = [...prevCards, ...newCards];
+                localStorage.setItem('flashcard_cards', JSON.stringify(updated));
+                return updated;
+              });
+            }}
+          >
+            Add Default Flashcards
+          </button>
+          <AddFlashcards cards={cards} setCards={setCards} />
+        </>
       ) : (
         <PlayFlashcards cards={cards} setCards={setCards} />
       )}
