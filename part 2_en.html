@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flashcards</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+     background:#fafafa;color:#333;
+     max-width:600px;margin:0 auto;padding:1rem;
+     padding-bottom:4rem;}
+h1{text-align:center;margin-bottom:1rem;font-size:1.8rem}
+.flashcard{background:#fff;border:1px solid #ddd;border-radius:12px;
+           padding:1.5rem;margin-bottom:1.5rem;position:relative;
+           touch-action:manipulation;min-height:200px;cursor:pointer}
+.flashcard.remembered{border-color:#43a047}
+.remembered-badge{position:absolute;top:8px;right:12px;
+                  background:#43a047;color:#fff;border-radius:8px;
+                  padding:2px 6px;font-size:.75rem;display:none}
+.flashcard.remembered .remembered-badge{display:block}
+.content{font-size:1.5rem;min-height:7em;
+         display:flex;align-items:center;justify-content:center;
+         margin-bottom:.75rem}
+.buttons{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.buttons button{flex:1 1 30%;padding:.5rem;font-size:1rem;
+                border:none;border-radius:8px;cursor:pointer}
+.remember-button{background:#eee;color:#333}
+.remember-button.remembered{background:#43a047;color:#fff}
+.play-button{background:none;font-size:1.2rem;color:#1976d2}
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+       background:rgba(0,0,0,.5);align-items:center;justify-content:center;
+       z-index:1000}
+.modal-content{background:#fff;border-radius:12px;
+               padding:1.5rem;max-width:90%;width:320px}
+.modal-content h2{margin-bottom:.5rem;font-size:1.2rem}
+.modal-content label{display:block;margin:.5rem 0 .25rem}
+.modal-content select,
+.modal-content input[type="range"]{width:100%}
+.modal-content .close{float:right;font-size:1.2rem;cursor:pointer}
+.lang-settings{padding:1rem 0;margin-bottom:1.5rem;min-height:180px}
+
+/* Enlarged floating buttons */
+#settings-button,
+#flip-all-button {
+  position: fixed;
+  bottom: 1rem;
+  z-index: 1001;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 4rem;        /* ~64px */
+  height: 4rem;       /* ~64px */
+  padding: 0;
+  font-size: 2.5rem;  /* larger icon */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+#flip-all-button { right: 6rem; }
+#settings-button  { right: 1rem; }
+
+/* Arrow-only Return button at bottom-left */
+#return-button {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 3.5rem;      /* ~56px */
+  height: 3.5rem;     /* ~56px */
+  padding: 0;
+  font-size: 2rem;    /* arrow size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+</style>
+</head><body>
+<h1>Flashcards</h1>
+<button id="flip-all-button" title="Flip all cards to Arabic">🔄</button>
+<button id="settings-button" title="Settings">⚙️</button>
+<div id="card-container"></div>
+<div id="settings-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" title="Close">×</span>
+    <h2>Voice Settings</h2>
+    <div class="lang-settings" data-lang="ar">
+      <label>Arabic Voice:</label>
+      <select class="voice-select"></select>
+      <label>Rate: <span class="rate-value">1</span></label>
+      <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
+      <label>Pitch: <span class="pitch-value">1</span></label>
+      <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
+    </div><hr>
+    <div class="lang-settings" data-lang="en">
+      <label>English Voice:</label>
+      <select class="voice-select"></select>
+      <label>Rate: <span class="rate-value">1</span></label>
+      <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
+      <label>Pitch: <span class="pitch-value">1</span></label>
+      <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
+    </div><hr>
+    <div class="lang-settings" data-lang="fr">
+      <label>French Voice:</label>
+      <select class="voice-select"></select>
+      <label>Rate: <span class="rate-value">1</span></label>
+      <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
+      <label>Pitch: <span class="pitch-value">1</span></label>
+      <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
+    </div><hr>
+  </div>
+</div>
+
+<button
+  id="return-button"
+  title="Return to Main Page"
+  onclick="window.location.href='index_en.html'"
+>
+  ←
+</button>
+
+<script>
+const cards = [
+  {arabic:"\u0645\u0646 \u062d\u064a\u0646 \u0625\u0644\u0649 \u0622\u062e\u0631",english:"Occasional",french:"Occasionnel"},
+  {arabic:"\u063a\u064a\u0631 \u0631\u0633\u0645\u064a",english:"Casual",french:"Informel"},
+  {arabic:"\u0634\u062d\u0627\u0644 \u062f\u0627\u0628\u0627 \u0645\u0646 \u0643\u064a\u0644\u0648\u0645\u062a\u0631 \u063a\u0627\u062f\u064a \u0646\u0643\u0648\u0646\u0648\u0627 \u0636\u0631\u0628\u0646\u0627 \u062f\u0627\u0628\u0627",english:"How many miles have we driven by now?",french:"Combien de kilom\u00e8tres avons-nous parcouru maintenant ?"},
+  {arabic:"\u0643\u0627\u0646 \u0643\u064a\u062c\u0631\u064a \u0628\u0643\u0644 \u0642\u0635\u0631 \u062c\u0647\u062f\u0647",english:"He was running as fast as he could",french:"Il courait aussi vite qu'il pouvait"},
+  {arabic:"\u0623\u0644\u0645 \u0623\u0631\u0633\u0644\u0643 \u0644\u062a\u0630\u0647\u0628\u064a \u0648\u062a\u0646\u0627\u062f\u064a \u0644\u062c\u062f\u0643 \u0645\u0646 \u0623\u062c\u0644 \u0627\u0644\u0639\u0634\u0627\u0621",english:"Didn't I send you to call Grandpa for dinner?",french:"Ne t'ai-je pas envoy\u00e9e appeler grand-p\u00e8re pour le d\u00eener ?"},
+  {arabic:"\u0630\u0646\u0648\u0628",english:"Sins",french:"P\u00e9ch\u00e9s"},
+  {arabic:"\u0627\u0633\u062a\u0637\u0644\u0627\u0639 \u0627\u0644\u0631\u0623\u064a \u0627\u0644\u0639\u0627\u0645",english:"Opinion poll",french:"Sondage d'opinion"},
+  {arabic:"\u0647\u0630\u0627 \u0627\u0644\u0641\u064a\u0631\u0648\u0633 \u0642\u062f \u0623\u0638\u0647\u0631 \u0644\u0646\u0627 \u0627\u0644\u0639\u062f\u064a\u062f \u0645\u0646 \u0627\u0644\u0623\u0645\u0648\u0631",english:"This virus has shown us a lot of things",french:"Ce virus nous a montr\u00e9 beaucoup de choses"},
+  {arabic:"\u062d\u0633\u0646\u0629",english:"Good deed",french:"Bonne action"},
+  {arabic:"\u0627\u0644\u062a\u0641\u0627\u0647\u0629",english:"Insignificance",french:"Insignifiance"},
+  {arabic:"\u0627\u0644\u062d\u0643\u0648\u0645\u0629 \u062a\u0641\u0631\u0636 \u0627\u0644\u0642\u0627\u0646\u0648\u0646",english:"The government enforces the law",french:"Le gouvernement applique la loi"},
+  {arabic:"\u0625\u0646\u0647\u0645 \u064a\u062d\u0627\u0648\u0644\u0648\u0646 \u062a\u062d\u0631\u064a\u0641 \u0648\u0642\u0627\u0626\u0639 \u062a\u0627\u0631\u064a\u062e\u064a\u0629",english:"They intend to distort historical facts",french:"Ils cherchent \u00e0 d\u00e9former les faits historiques"},
+  {arabic:"\u0639\u0646\u062f\u0645\u0627 \u0627\u0633\u062a\u0648\u0644\u062a \u0627\u0644\u062c\u064a\u0648\u0634 \u0627\u0644\u0628\u0631\u064a\u0637\u0627\u0646\u064a\u0629 \u0639\u0644\u0649 \u0643\u064a\u0628\u064a\u0643 \u0639\u0627\u0645 1759",english:"When the British armies captured Quebec in 1759",french:"Lorsque les arm\u00e9es britanniques ont captur\u00e9 Qu\u00e9bec en 1759"},
+  {arabic:"\u0639\u0646\u062f\u0645\u0627 \u062a\u0642\u062a\u0631\u0628 \u0639\u0637\u0644\u0629 \u0631\u0623\u0633 \u0627\u0644\u0633\u0646\u0629 \u062f\u0627\u0626\u0645\u0627\u064b \u0646\u0634\u0639\u0631 \u0628\u0627\u0644\u0633\u0639\u0627\u062f\u0629",english:"When New Year's holiday approaches, we always feel happy",french:"Quand les vacances du Nouvel An approchent, nous ressentons toujours de la joie"},
+  {arabic:"\u064a\u0631\u063a\u0628\u0648\u0646 \u0641\u064a \u0627\u0633\u062a\u063a\u0644\u0627\u0644 \u0627\u0644\u0639\u062f\u064a\u062f \u0645\u0646 \u0627\u0644\u0623\u0645\u0648\u0631 \u0639\u0644\u0649 \u062d\u0633\u0627\u0628 \u0627\u0644\u0646\u0627\u0633",english:"They want to exploit many things at the expense of the people",french:"Ils veulent exploiter de nombreuses choses au d\u00e9triment des gens"},
+  {arabic:"\u062a\u062c\u0627\u0647\u0644 \u0634\u062e\u0635 \u0628\u0627\u0632\u062f\u0631\u0627\u0621: \u0627\u0644\u0631\u0626\u064a\u0633 \u062a\u062c\u0627\u0647\u0644 \u0643\u0644 \u0627\u0642\u062a\u0631\u0627\u062d \u0642\u062f\u0645\u0647 \u062a\u0648\u0645",english:"The boss snubbed every suggestion Tom made",french:"Le patron a ignor\u00e9 toutes les suggestions faites par Tom"},
+  {arabic:"\u0639\u0644\u0645 \u0627\u0644\u0641\u0644\u0643",english:"Astronomy",french:"Astronomie"},
+  {arabic:"\u0635\u0646\u062f\u0648\u0642 \u0627\u0644\u0646\u0642\u062f \u0627\u0644\u062f\u0648\u0644\u064a",english:"International Monetary Fund",french:"Fonds mon\u00e9taire international"},
+  {arabic:"\u062c\u0644\u062f",english:"Leather",french:"Cuir"},
+  {arabic:"\u0634\u0627\u0631\u0639 \u0636\u064a\u0642",english:"Narrow street",french:"Rue \u00e9troite"},
+  {arabic:"\u0623\u062c\u0646\u062f\u0629 \u0633\u064a\u0627\u0633\u064a\u0629 \u0645\u0639\u064a\u0646\u0629",english:"Political agenda",french:"Agenda politique"},
+];
+// Remembered state
+let rememberedStates = {};
+try { rememberedStates = JSON.parse(localStorage.getItem('flashcardRemembered'))||{}; } catch {}
+function saveRemembered(){ localStorage.setItem('flashcardRemembered',JSON.stringify(rememberedStates)); }
+// Voice settings
+const voiceSettings = { ar:{voiceURI:null,rate:1,pitch:1}, en:{voiceURI:null,rate:1,pitch:1}, fr:{voiceURI:null,rate:1,pitch:1} };
+const sv = localStorage.getItem('flashcardVoiceSettings');
+if(sv) Object.assign(voiceSettings,JSON.parse(sv));
+function populateVoiceSelects(){
+  const vlist = speechSynthesis.getVoices();
+  document.querySelectorAll('.lang-settings').forEach(cfg=>{
+    const lang=cfg.dataset.lang, sel=cfg.querySelector('.voice-select');
+    sel.innerHTML='';
+    vlist.filter(v=>v.lang.startsWith(lang))
+         .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
+    if(voiceSettings[lang].voiceURI) sel.value=voiceSettings[lang].voiceURI;
+  });
+}
+speechSynthesis.onvoiceschanged=populateVoiceSelects;
+// Modal controls
+const modal=document.getElementById('settings-modal');
+document.getElementById('settings-button').onclick=()=>{ populateVoiceSelects(); modal.style.display='flex'; };
+modal.querySelector('.close').onclick=()=>{ modal.style.display='none'; localStorage.setItem('flashcardVoiceSettings',JSON.stringify(voiceSettings)); };
+document.querySelectorAll('.lang-settings').forEach(cfg=>{
+  const lang=cfg.dataset.lang;
+  cfg.querySelector('.voice-select').onchange=e=>voiceSettings[lang].voiceURI=e.target.value;
+  const rate=cfg.querySelector('.rate-range'), rv=cfg.querySelector('.rate-value');
+  rate.oninput=e=>{rv.textContent=e.target.value;voiceSettings[lang].rate=+e.target.value;};
+  rate.value=voiceSettings[lang].rate; rv.textContent=rate.value;
+  const pitch=cfg.querySelector('.pitch-range'), pv=cfg.querySelector('.pitch-value');
+  pitch.oninput=e=>{pv.textContent=e.target.value;voiceSettings[lang].pitch=+e.target.value;};
+  pitch.value=voiceSettings[lang].pitch; pv.textContent=pitch.value;
+});
+// Card builder
+function createCard(d,i){
+  const card=document.createElement('div'); card.className='flashcard'; card.dataset.side=0;
+  const badge=document.createElement('span'); badge.className='remembered-badge'; badge.textContent='Remembered ✓';
+  card.append(badge);
+  const content=document.createElement('div'); content.className='content'; card.append(content);
+  const render=()=>{ content.textContent=[d.arabic,d.english,d.french][+card.dataset.side]; };
+  render();
+  card.onclick=e=>{ if(!e.target.closest('button')){ card.dataset.side=(+card.dataset.side+1)%3; render(); } };
+  const btns=document.createElement('div'); btns.className='buttons';
+  const remBtn=document.createElement('button'); remBtn.className='remember-button';
+  const applyR=st=>{ card.classList.toggle('remembered',st); remBtn.classList.toggle('remembered',st);
+                     remBtn.textContent=st?'Unmark Remembered':'Mark as Remembered'; };
+  applyR(!!rememberedStates[i]);
+  remBtn.onclick=()=>{ rememberedStates[i]=!rememberedStates[i]; applyR(rememberedStates[i]); saveRemembered(); };
+  btns.append(remBtn);
+  const playBtn=document.createElement('button'); playBtn.className='play-button'; playBtn.textContent='🔊';
+  playBtn.onclick=()=>{
+    const side=+card.dataset.side, txt=[d.arabic,d.english,d.french][side], lang=['ar','en','fr'][side];
+    const u=new SpeechSynthesisUtterance(txt), s=voiceSettings[lang];
+    if(s.voiceURI) u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===s.voiceURI); else u.lang=lang;
+    u.rate=s.rate; u.pitch=s.pitch; speechSynthesis.speak(u);
+  };
+  btns.append(playBtn);
+  card.append(btns);
+  return card;
+}
+// Flip-all
+document.getElementById('flip-all-button').onclick=()=>{
+  document.querySelectorAll('.flashcard').forEach((c,i)=>{
+    c.dataset.side=0; c.querySelector('.content').textContent = cards[i].arabic;
+  });
+};
+// Init
+window.addEventListener('DOMContentLoaded',()=>{
+  const cont=document.getElementById('card-container');
+  cards.forEach((c,i)=>cont.append(createCard(c,i)));
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+});
+</script>
+</body></html>
