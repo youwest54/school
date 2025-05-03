@@ -24,12 +24,22 @@
       margin-bottom:var(--gap);
       font-size:1.8rem;
     }
+
+    .scroll-buffer {
+      width: 100%;
+      height: 80px; /* Touch-safe scroll area */
+      flex-shrink: 0;
+    }
+
     .grid{
       display:grid;
       width:100%; max-width:640px;
       gap:var(--gap);
       grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+      margin-top: 1rem;
+      margin-bottom: 3rem;
     }
+
     .grid a{
       position:relative;
       display:flex;align-items:center;justify-content:center;
@@ -45,6 +55,7 @@
       text-align:center;
       user-select:none;touch-action:manipulation;
     }
+
     .grid a:hover  { background:var(--primary); color:#fff }
     .grid a:active { transform:scale(.97) }
     .grid a.done   { filter:var(--done-filter) }
@@ -54,13 +65,11 @@
       font-size:1.2em; color:var(--primary);
     }
 
-    /* ── 10-rem sticky Return button ─────────────────────────────────── */
     #return-button{
       position:fixed;
-      top:37%;                       /* ← centre of button 25 % down */
+      top:37%;
       transform:translateY(-50%);
       left:calc(env(safe-area-inset-left,0) + 1rem);
-
       width:10rem; height:10rem; font-size:4rem;
       display:flex; align-items:center; justify-content:center;
       text-decoration:none; border:none; border-radius:50%;
@@ -69,6 +78,7 @@
       z-index:1002;
       touch-action:manipulation; cursor:pointer;
     }
+
     @media(max-width:400px){
       #return-button{ width:7rem; height:7rem; font-size:3rem }
       h1{ font-size:1.4rem }
@@ -78,6 +88,8 @@
 </head>
 <body>
   <h1>English Pages</h1>
+
+  <div class="scroll-buffer"></div>
 
   <nav class="grid">
     <a href="part 1_en.html">Part 1</a>
@@ -99,6 +111,8 @@
     <a href="part 17_en.html">Part 17</a>
     <a href="part 18_en.html">Part 18</a>
   </nav>
+
+  <div class="scroll-buffer"></div>
 
   <a id="return-button" href="index.html" title="Back">←</a>
 
