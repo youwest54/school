@@ -1,267 +1,202 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<html lang="ar"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Flashcards</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-     background:#fafafa;color:#333;
-     max-width:600px;margin:0 auto;padding:1rem;
-     padding-bottom:4rem;}
+     background:#fafafa;color:#333;max-width:600px;margin:0 auto;padding:1rem;
+     padding-bottom:4rem}
 h1{text-align:center;margin-bottom:1rem;font-size:1.8rem}
 .flashcard{background:#fff;border:1px solid #ddd;border-radius:12px;
            padding:1.5rem;margin-bottom:1.5rem;position:relative;
            touch-action:manipulation;min-height:200px;cursor:pointer}
 .flashcard.remembered{border-color:#43a047}
-.remembered-badge{position:absolute;top:8px;right:12px;
-                  background:#43a047;color:#fff;border-radius:8px;
-                  padding:2px 6px;font-size:.75rem;display:none}
+.remembered-badge{position:absolute;top:8px;right:12px;background:#43a047;
+                  color:#fff;border-radius:8px;padding:2px 6px;font-size:.75rem;
+                  display:none}
 .flashcard.remembered .remembered-badge{display:block}
-.content{font-size:1.5rem;min-height:7em;
-         display:flex;align-items:center;justify-content:center;
-         margin-bottom:.75rem}
+.content{font-size:1.5rem;min-height:7em;display:flex;align-items:center;
+         justify-content:center;margin-bottom:.75rem}
 .buttons{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
-.buttons button{flex:1 1 30%;padding:.5rem;font-size:1rem;
-                border:none;border-radius:8px;cursor:pointer}
+.buttons button{flex:1 1 30%;padding:.5rem;font-size:1rem;border:none;
+                border-radius:8px;cursor:pointer}
 .remember-button{background:#eee;color:#333}
 .remember-button.remembered{background:#43a047;color:#fff}
-
-/* In-card play button resized to match 4rem floating buttons */
-.play-button {
-  flex: none;               /* override flex sizing */
-  width: 4rem;              /* ~64px */
-  height: 4rem;             /* ~64px */
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  font-size: 2.5rem;        /* icon size */
-  background: #fff;
-  color: #1976d2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-/* Modal */
+.play-button{flex:none;width:4rem;height:4rem;padding:0;border:none;
+             border-radius:50%;font-size:2.5rem;background:#fff;color:#1976d2;
+             display:flex;align-items:center;justify-content:center;cursor:pointer;
+             box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;
        background:rgba(0,0,0,.5);align-items:center;justify-content:center;
        z-index:1000}
-.modal-content{background:#fff;border-radius:12px;
-               padding:1.5rem;max-width:90%;width:320px}
+.modal-content{background:#fff;border-radius:12px;padding:1.5rem;
+               max-width:90%;width:320px}
 .modal-content h2{margin-bottom:.5rem;font-size:1.2rem}
 .modal-content label{display:block;margin:.5rem 0 .25rem}
 .modal-content select,
-.modal-content input[type="range"]{width:100%}
+.modal-content input[type=range]{width:100%}
 .modal-content .close{float:right;font-size:1.2rem;cursor:pointer}
 .lang-settings{padding:1rem 0;margin-bottom:1.5rem;min-height:180px}
+#settings-button,#flip-all-button{position:fixed;bottom:1rem;z-index:1001;
+  background:#fff;border:none;border-radius:50%;width:4rem;height:4rem;
+  padding:0;font-size:2.5rem;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+#flip-all-button{right:6rem}#settings-button{right:1rem}
 
-/* Enlarged floating buttons */
-#settings-button,
-#flip-all-button {
-  position: fixed;
-  bottom: 1rem;
-  z-index: 1001;
-  background: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 4rem;        /* ~64px */
-  height: 4rem;       /* ~64px */
-  padding: 0;
-  font-size: 2.5rem;  /* icon size */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+ /* ---------- 10 rem Return button that respects the iPhone safe-area ---------- */
+#return-button{
+  position:fixed;
+  bottom:calc(env(safe-area-inset-bottom,0) + 1rem);
+  left:  calc(env(safe-area-inset-left ,0) + 1rem);
+
+  width:10rem;
+  height:10rem;
+  font-size:4rem;
+
+  border:none;
+  border-radius:50%;
+  background:#1976d2;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,.25);
+  z-index:1002;
+  cursor:pointer;
+  touch-action:manipulation;
 }
-#flip-all-button { right: 6rem; }
-#settings-button  { right: 1rem; }
-
-/* Arrow-only return button bottom-left */
-#return-button {
-  position: fixed;
-  bottom: 1rem;
-  left: 1rem;
-  background: #1976d2;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 3.5rem;      /* ~56px */
-  height: 3.5rem;     /* ~56px */
-  padding: 0;
-  font-size: 2rem;    /* arrow size */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+/* auto-shrink on very small screens (e.g. iPhone SE) */
+@media (max-width:375px){
+  #return-button{
+    width:7rem;
+    height:7rem;
+    font-size:3rem;
+  }
 }
 </style>
 </head><body>
 <h1>Flashcards</h1>
-<button id="flip-all-button" title="Flip all cards to Arabic">🔄</button>
-<button id="settings-button" title="Settings">⚙️</button>
+<button id="flip-all-button" title="Flip all cards">🔄</button>
+<button id="settings-button"  title="Settings">⚙️</button>
 <div id="card-container"></div>
-<div id="settings-modal" class="modal">
-  <div class="modal-content">
-    <span class="close" title="Close">×</span>
-    <h2>Voice Settings</h2>
-    <div class="lang-settings" data-lang="ar">
-      <label>Arabic Voice:</label>
-      <select class="voice-select"></select>
-      <label>Rate: <span class="rate-value">1</span></label>
-      <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
-      <label>Pitch: <span class="pitch-value">1</span></label>
-      <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
-    </div><hr>
-    <div class="lang-settings" data-lang="en">
-      <label>English Voice:</label>
-      <select class="voice-select"></select>
-      <label>Rate: <span class="rate-value">1</span></label>
-      <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
-      <label>Pitch: <span class="pitch-value">1</span></label>
-      <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
-    </div><hr>
-    <div class="lang-settings" data-lang="fr">
-      <label>French Voice:</label>
-      <select class="voice-select"></select>
-      <label>Rate: <span class="rate-value">1</span></label>
-      <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
-      <label>Pitch: <span class="pitch-value">1</span></label>
-      <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
-    </div><hr>
-  </div>
-</div>
 
-<!-- Arrow-only return button -->
-<button
-  id="return-button"
-  title="Return to Main Page"
-  onclick="window.location.href='index_en.html'"
->
-  ←
-</button>
+<!-- Settings modal ---------------------------------------------------------->
+<div id="settings-modal" class="modal"><div class="modal-content">
+<span class="close" title="Close">×</span><h2>Voice Settings</h2>
+<div class="lang-settings" data-lang="ar">
+  <label>Arabic voice:</label>
+  <select class="voice-select"></select>
+  <label>Rate: <span class="rate-value">1</span></label>
+  <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
+  <label>Pitch: <span class="pitch-value">1</span></label>
+  <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
+</div><hr>
+<div class="lang-settings" data-lang="en">
+  <label>English voice:</label>
+  <select class="voice-select"></select>
+  <label>Rate: <span class="rate-value">1</span></label>
+  <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
+  <label>Pitch: <span class="pitch-value">1</span></label>
+  <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
+</div><hr>
+<div class="lang-settings" data-lang="fr">
+  <label>French voice:</label>
+  <select class="voice-select"></select>
+  <label>Rate: <span class="rate-value">1</span></label>
+  <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
+  <label>Pitch: <span class="pitch-value">1</span></label>
+  <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
+</div><hr>
+</div></div>
+
+<button id="return-button" title="Return">←</button>
 
 <script>
-const cards = [
-  {arabic:"\u062a\u0647\u062c",english:"Spell",french:"\u00c9peler"},
-  {arabic:"\u062a\u0646\u0627\u063a\u0645",english:"Coherence",french:"Coh\u00e9rence"},
-  {arabic:"\u062c\u0633\u062f \u0631\u0627\u0626\u0639 \u0628\u0631\u0648\u062d \u0642\u0627\u062a\u0645\u0629",english:"Gorgeous body with a dark spirit",french:"Un corps magnifique avec une \u00e2me sombre"},
-  {arabic:"\u0644\u0627 \u0627\u062d\u0628 \u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u0645\u0637\u0644\u0642",english:"I don\u2019t like to talk in absolutes",french:"Je n'aime pas parler en termes absolus"},
-  {arabic:"\u0645\u0633\u0626\u0648\u0644\u064a\u0629",english:"Accountability",french:"Responsabilit\u00e9"},
-  {arabic:"\u0645\u0639\u0641\u0649",english:"Exempted",french:"Exempt\u00e9"},
-  {arabic:"communautarisme",english:"Communitarism",french:"Communautarisme"},
-  {arabic:"\u0639\u062f\u0644 \u0627\u0644\u0646\u0648\u0627\u0628 \u0646\u0635 \u0627\u0644\u0642\u0627\u0646\u0648\u0646 \u0647\u0630\u0627",english:"The deputies amended this law",french:"Les d\u00e9put\u00e9s ont amend\u00e9 ce texte de loi"},
-  {arabic:"\u063a\u064a\u0631 \u0648\u0627\u0639\u064d",english:"Oblivious",french:"Inconscient / Inconsciente"},
-  {arabic:"\u0648\u0627\u0644\u0644\u064a \u064a\u062e\u0644\u064a \u0645\u062f\u064a\u0646\u0647 \u0646\u064a\u0648\u0631\u0643 \u0645\u062a\u0645\u064a\u0632\u0647",english:"What makes New York City special?",french:"Qu'est-ce qui distingue la ville de New York ?"},
-  {arabic:"\u0644\u0645\u0627\u0630\u0627 \u062a\u0647\u062a\u0645 \u0628\u0645\u0639\u0631\u0641\u0629 \u0630\u0644\u0643\u061f",english:"But why do you care to know?",french:"Mais pourquoi tu te souci\u00e9s de savoir ?"},
-  {arabic:"\u062e\u0632\u0627\u0626\u0646",english:"Wardrobes",french:"Placards"},
-  {arabic:"\u062a\u0645\u0646\u064a\u062a \u0644\u0648 \u0643\u0646\u062a \u0623\u0643\u062b\u0631 \u062d\u0643\u0645\u0629 \u0641\u064a \u0630\u0644\u0643 \u0627\u0644\u0648\u0642\u062a",english:"I wished I was wiser at the time",french:"J'aurais aim\u00e9 \u00eatre plus sage \u00e0 l'\u00e9poque"},
-  {arabic:"\u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u0628\u0644\u062f \u0627\u0644\u062c\u0645\u064a\u0639 \u062d\u0631 \u0641\u064a \u0641\u0639\u0644 \u0645\u0627 \u064a\u0634\u0627\u0621\u060c \u0625\u0630\u0627 \u0644\u0645 \u064a\u0639\u062c\u0628\u0643 \u0630\u0644\u0643",english:"In this country, everyone is free to do what they want. If you don't like that, feel free to go back to where your ancestors came from because this land is not yours.",french:"Dans ce pays, chacun est libre de faire ce qu'il veut. Si vous n'aimez pas \u00e7a, n'h\u00e9sitez pas \u00e0 retourner d'o\u00f9 viennent vos anc\u00eatres parce que cette terre n'est pas la v\u00f4tre."},
-  {arabic:"\u0634\u064a\u0626\u0627 \u0641\u0634\u064a\u0626\u0627\u061b \u0628\u0627\u0633\u062a\u0645\u0631\u0627\u0631",english:"Little by little; constantly",french:"Au fur et \u00e0 mesure"},
-  {arabic:"\u064a\u062c\u0628 \u0639\u0644\u0649 \u062a\u0631\u0643\u064a\u0627 \u0623\u0646 \u062a\u0642\u062a\u0635\u0631 \u0639\u0644\u0649 \u062e\u0631\u064a\u0637\u062a\u0647\u0627 \u0627\u0644\u062c\u063a\u0631\u0627\u0641\u064a\u0629",english:"Turkey should limit itself to its geographical borders and not intervene in conflicts.",french:"La Turquie doit se limiter \u00e0 sa carte g\u00e9ographique et ne plus intervenir dans les conflits."},
-  {arabic:"\u0645\u062d\u0627",english:"Rub out",french:"Effacer"},
-  {arabic:"\u0625\u0646\u0647 \u062a\u0623\u062b\u064a\u0631 \u0623\u064a\u062f\u064a\u0648\u0644\u0648\u062c\u064a \u064a\u0623\u062a\u064a \u0645\u0646 \u0628\u0642\u0627\u064a\u0627 \u0627\u0644\u0641\u062a\u0631\u0629 \u0627\u0644\u0627\u0633\u062a\u0639\u0645\u0627\u0631\u064a\u0629 \u0627\u0644\u0642\u062f\u064a\u0645\u0629",english:"It's an ideological effect from the remnants of the colonial period.",french:"C'est un effet id\u00e9ologique qui vient de l'ancien vestige de la p\u00e9riode coloniale."},
-  {arabic:"\u0647\u0630\u0627 \u0627\u0644\u0646\u0648\u0639 \u0645\u0646 \u0627\u0644\u0633\u0644\u0648\u0643 \u0647\u0648 \u062c\u0632\u0621 \u0645\u0646 \u0628\u0642\u0627\u064a\u0627 \u0627\u0644\u0627\u0633\u062a\u0639\u0645\u0627\u0631",english:"This kind of behavior is part of the remnants of colonialism.",french:"Ce genre de comportement fait partie d'un vestige de la colonisation."},
-  {arabic:"\u062a\u0635\u0631\u0641 \u063a\u064a\u0631 \u0627\u0646\u0633\u0627\u0646\u064a",english:"Inhumane behavior",french:"Comportement inhumain"},
-  {arabic:"\u062a\u062f\u062e\u0644",english:"Interfere",french:"Interf\u00e9rer"},
-  {arabic:"\u062a\u0645 \u0641\u0647\u0645 \u0631\u0633\u0627\u0644\u0629 \u0627\u0644\u062d\u062c\u0631 \u0627\u0644\u0635\u062d\u064a \u0647\u0646\u0627",english:"The confinement message was understood here.",french:"Le message de confinement a \u00e9t\u00e9 compris ici."},
-  {arabic:"\u0639\u0646\u062f\u0645\u0627 \u062a\u0642\u062a\u0631\u0628",english:"When it comes closer",french:"Quand \u00e7a s'approche"},
-  {arabic:"\u0645\u063a\u0631\u064a",english:"Tempting",french:"Tentant"},
-  {arabic:"\u0639\u0631\u064a\u0633",english:"Bridegroom",french:"Jeune mari\u00e9"},
-  {arabic:"\u064a\u0642\u0627\u0644 \u0623\u0646 \u0627\u0644\u0645\u0634\u062a\u0628\u0647 \u0628\u0647 \u062e\u062f\u0639 \u0639\u062f\u062f\u064b\u0627 \u0645\u0646 \u0643\u0628\u0627\u0631 \u0627\u0644\u0633\u0646",english:"The suspect apparently conned a number of elderly people.",french:"Le suspect a apparemment escroqu\u00e9 un certain nombre de personnes \u00e2g\u00e9es."},
-  {arabic:"\u0627\u0644\u0623\u0646\u0627\u0646\u064a\u0629",english:"Selfishness",french:"\u00c9go\u00efsme"},
-  {arabic:"\u0627\u0644\u064a\u0627\u0628\u0627\u0646 \u0633\u062a\u0633\u062a\u0636\u064a\u0641 \u0627\u0644\u0623\u0644\u0639\u0627\u0628 \u0627\u0644\u0623\u0648\u0644\u0645\u0628\u064a\u0629 \"\u0643\u0645\u0627 \u0647\u0648 \u0645\u062e\u0637\u0637\"",english:"Japan will host the Olympics \"as planned,\" assures the Prime Minister.",french:"Le Japon accueillera les JO \u00ab comme pr\u00e9vu \u00bb, assure le Premier ministre."},
-  {arabic:"\u0645\u062a\u0636\u0627\u0645\u0646",english:"United",french:"Solidaire"},
-  {arabic:"\u0647\u0630\u0627 \u0627\u0644\u0641\u064a\u0631\u0648\u0633 \u0623\u0638\u0647\u0631 \u0644\u0646\u0627 \u0627\u0644\u0643\u062b\u064a\u0631",english:"This virus has shown us a lot.",french:"Ce virus nous a beaucoup montr\u00e9."},
-  {arabic:"\u0644\u0645\u0627\u0630\u0627 \u062a\u0646\u0641\u062f \u0628\u0637\u0627\u0631\u064a\u062a\u064a \u0628\u0647\u0630\u0647 \u0627\u0644\u0633\u0631\u0639\u0629\u061f",english:"Why is my battery running down so fast?",french:"Pourquoi ma batterie s'\u00e9puise si vite ?"},
-  {arabic:"\u0623\u0646\u0627\u0628\u064a\u0628",english:"Pipes",french:"Tuyaux"},
-  {arabic:"\u0635\u062f\u0645\u0629 \u0648\u0641\u0627\u0629 \u0648\u0627\u0644\u062f\u0647\u0627 \u062a\u0624\u0630\u064a\u0647\u0627 \u062d\u0642\u064b\u0627",english:"The shock of her father's death really hurt her.",french:"Le choc de la mort de son p\u00e8re lui a vraiment fait mal."},
-  {arabic:"\u0623\u062d\u062f\u0647\u0645 \u064a\u0633\u0627\u0639\u062f \u0647\u0630\u0627 \u0627\u0644\u0631\u062c\u0644\u060c \u0625\u0646\u0647 \u064a\u062e\u062a\u0646\u0642!",english:"Someone help that man, he's choking!",french:"Quelqu'un aide cet homme, il s'\u00e9touffe !"},
-  {arabic:"\u0627\u062e\u062a\u0646\u0642",english:"Choke",french:"\u00c9touffer"},
-  {arabic:"\u0643\u062f\u062a \u0623\u0646 \u0623\u0641\u0642\u062f \u0648\u0639\u064a\u064a \u0639\u0646\u062f\u0645\u0627 \u0623\u062e\u0628\u0631\u0648\u0646\u064a \u0628\u0627\u0644\u0633\u0639\u0631",english:"I nearly fainted when they told me the price.",french:"Je me suis presque \u00e9vanoui quand ils m'ont dit le prix."},
-  {arabic:"\u0647\u0630\u0627 \u063a\u0631\u064a\u0628",english:"That\u2019s strange",french:"C'est \u00e9trange"},
-  {arabic:"\u0627\u0632\u062f\u062d\u0627\u0645 \u0633\u0627\u0639\u0629 \u0627\u0644\u0630\u0631\u0648\u0629",english:"Rush hour traffic",french:"Embouteillages aux heures de pointe"},
-  {arabic:"\u0639\u0646\u062f\u0645\u0627 \u0627\u0633\u062a\u0648\u0644\u062a \u0627\u0644\u062c\u064a\u0648\u0634 \u0627\u0644\u0628\u0631\u064a\u0637\u0627\u0646\u064a\u0629 \u0639\u0644\u0649 \u0643\u064a\u0628\u064a\u0643 \u0648\u0645\u0648\u0646\u062a\u0631\u064a\u0627\u0644",english:"When British armies captured Quebec in 1759 and Montreal in 1760.",french:"Quand les arm\u00e9es britanniques ont captur\u00e9 Qu\u00e9bec en 1759 et Montr\u00e9al en 1760."},
-  {arabic:"\u0627\u0644\u0633\u064a\u0627\u0633\u0629 \u0627\u0644\u062e\u0627\u0631\u062c\u064a\u0629",english:"Foreign Policy",french:"Politique \u00e9trang\u00e8re"},
-];
-// Remembered state
-let rememberedStates = {};
-try { rememberedStates = JSON.parse(localStorage.getItem('flashcardRemembered'))||{}; } catch {}
-function saveRemembered(){ localStorage.setItem('flashcardRemembered',JSON.stringify(rememberedStates)); }
-// Voice settings
-const voiceSettings = { ar:{voiceURI:null,rate:1,pitch:1}, en:{voiceURI:null,rate:1,pitch:1}, fr:{voiceURI:null,rate:1,pitch:1} };
-const sv = localStorage.getItem('flashcardVoiceSettings');
-if(sv) Object.assign(voiceSettings,JSON.parse(sv));
-function populateVoiceSelects(){
-  const vlist = speechSynthesis.getVoices();
+const LANGS = ["ar", "en", "fr"];
+const CARDS = [{"ar": "تهج", "en": "Spell", "fr": "Épeler"}, {"ar": "تناغم", "en": "Coherence", "fr": "Cohérence"}, {"ar": "جسد رائع بروح قاتمة", "en": "Gorgeous body with a dark spirit", "fr": "Un corps magnifique avec une âme sombre"}, {"ar": "لا احب الحديث المطلق", "en": "I don’t like to talk in absolutes", "fr": "Je n'aime pas parler en termes absolus"}, {"ar": "مسئولية", "en": "Accountability", "fr": "Responsabilité"}, {"ar": "معفى", "en": "Exempted", "fr": "Exempté"}, {"ar": "communautarisme", "en": "Communitarism", "fr": "Communautarisme"}, {"ar": "عدل النواب نص القانون هذا", "en": "The deputies amended this law", "fr": "Les députés ont amendé ce texte de loi"}, {"ar": "غير واعٍ", "en": "Oblivious", "fr": "Inconscient / Inconsciente"}, {"ar": "واللي يخلي مدينه نيورك متميزه", "en": "What makes New York City special?", "fr": "Qu'est-ce qui distingue la ville de New York ?"}, {"ar": "لماذا تهتم بمعرفة ذلك؟", "en": "But why do you care to know?", "fr": "Mais pourquoi tu te souciés de savoir ?"}, {"ar": "خزائن", "en": "Wardrobes", "fr": "Placards"}, {"ar": "تمنيت لو كنت أكثر حكمة في ذلك الوقت", "en": "I wished I was wiser at the time", "fr": "J'aurais aimé être plus sage à l'époque"}, {"ar": "في هذا البلد الجميع حر في فعل ما يشاء، إذا لم يعجبك ذلك", "en": "In this country, everyone is free to do what they want. If you don't like that, feel free to go back to where your ancestors came from because this land is not yours.", "fr": "Dans ce pays, chacun est libre de faire ce qu'il veut. Si vous n'aimez pas ça, n'hésitez pas à retourner d'où viennent vos ancêtres parce que cette terre n'est pas la vôtre."}, {"ar": "شيئا فشيئا؛ باستمرار", "en": "Little by little; constantly", "fr": "Au fur et à mesure"}, {"ar": "يجب على تركيا أن تقتصر على خريطتها الجغرافية", "en": "Turkey should limit itself to its geographical borders and not intervene in conflicts.", "fr": "La Turquie doit se limiter à sa carte géographique et ne plus intervenir dans les conflits."}, {"ar": "محا", "en": "Rub out", "fr": "Effacer"}, {"ar": "إنه تأثير أيديولوجي يأتي من بقايا الفترة الاستعمارية القديمة", "en": "It's an ideological effect from the remnants of the colonial period.", "fr": "C'est un effet idéologique qui vient de l'ancien vestige de la période coloniale."}, {"ar": "هذا النوع من السلوك هو جزء من بقايا الاستعمار", "en": "This kind of behavior is part of the remnants of colonialism.", "fr": "Ce genre de comportement fait partie d'un vestige de la colonisation."}, {"ar": "تصرف غير انساني", "en": "Inhumane behavior", "fr": "Comportement inhumain"}, {"ar": "تدخل", "en": "Interfere", "fr": "Interférer"}, {"ar": "تم فهم رسالة الحجر الصحي هنا", "en": "The confinement message was understood here.", "fr": "Le message de confinement a été compris ici."}, {"ar": "عندما تقترب", "en": "When it comes closer", "fr": "Quand ça s'approche"}, {"ar": "مغري", "en": "Tempting", "fr": "Tentant"}, {"ar": "عريس", "en": "Bridegroom", "fr": "Jeune marié"}, {"ar": "يقال أن المشتبه به خدع عددًا من كبار السن", "en": "The suspect apparently conned a number of elderly people.", "fr": "Le suspect a apparemment escroqué un certain nombre de personnes âgées."}, {"ar": "الأنانية", "en": "Selfishness", "fr": "Égoïsme"}, {"ar": "اليابان ستستضيف الألعاب الأولمبية \"كما هو مخطط\"", "en": "Japan will host the Olympics \"as planned,\" assures the Prime Minister.", "fr": "Le Japon accueillera les JO « comme prévu », assure le Premier ministre."}, {"ar": "متضامن", "en": "United", "fr": "Solidaire"}, {"ar": "هذا الفيروس أظهر لنا الكثير", "en": "This virus has shown us a lot.", "fr": "Ce virus nous a beaucoup montré."}, {"ar": "لماذا تنفد بطاريتي بهذه السرعة؟", "en": "Why is my battery running down so fast?", "fr": "Pourquoi ma batterie s'épuise si vite ?"}, {"ar": "أنابيب", "en": "Pipes", "fr": "Tuyaux"}, {"ar": "صدمة وفاة والدها تؤذيها حقًا", "en": "The shock of her father's death really hurt her.", "fr": "Le choc de la mort de son père lui a vraiment fait mal."}, {"ar": "أحدهم يساعد هذا الرجل، إنه يختنق!", "en": "Someone help that man, he's choking!", "fr": "Quelqu'un aide cet homme, il s'étouffe !"}, {"ar": "اختنق", "en": "Choke", "fr": "Étouffer"}, {"ar": "كدت أن أفقد وعيي عندما أخبروني بالسعر", "en": "I nearly fainted when they told me the price.", "fr": "Je me suis presque évanoui quand ils m'ont dit le prix."}, {"ar": "هذا غريب", "en": "That’s strange", "fr": "C'est étrange"}, {"ar": "ازدحام ساعة الذروة", "en": "Rush hour traffic", "fr": "Embouteillages aux heures de pointe"}, {"ar": "عندما استولت الجيوش البريطانية على كيبيك ومونتريال", "en": "When British armies captured Quebec in 1759 and Montreal in 1760.", "fr": "Quand les armées britanniques ont capturé Québec en 1759 et Montréal en 1760."}, {"ar": "السياسة الخارجية", "en": "Foreign Policy", "fr": "Politique étrangère"}];
+
+//  Remembered state ---------------------------------------------------------
+let remembered = {};
+try { remembered = JSON.parse(localStorage.getItem('flashcardRemembered')) || {}; } catch(e) {}
+function saveRemembered(){ localStorage.setItem('flashcardRemembered', JSON.stringify(remembered)); }
+
+//  Voice settings blob ------------------------------------------------------
+const voiceSettings = Object.fromEntries(LANGS.map(l => [l,{voiceURI:null,rate:1,pitch:1}]));
+try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){{}}
+
+//  Populate <select> on voices load ----------------------------------------
+function populateVoiceSelects(){ const vlist = speechSynthesis.getVoices();
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
-    const lang=cfg.dataset.lang, sel=cfg.querySelector('.voice-select');
-    sel.innerHTML='';
-    vlist.filter(v=>v.lang.startsWith(lang))
-         .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    if(voiceSettings[lang].voiceURI) sel.value=voiceSettings[lang].voiceURI;
+      const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+      sel.innerHTML='';
+      vlist.filter(v=>v.lang.startsWith(lang))
+           .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
+      sel.value = voiceSettings[lang].voiceURI || '';
   });
 }
-speechSynthesis.onvoiceschanged=populateVoiceSelects;
-// Modal controls
-const modal=document.getElementById('settings-modal');
-document.getElementById('settings-button').onclick=()=>{ populateVoiceSelects(); modal.style.display='flex'; };
-modal.querySelector('.close').onclick=()=>{ modal.style.display='none'; localStorage.setItem('flashcardVoiceSettings',JSON.stringify(voiceSettings)); };
-document.querySelectorAll('.lang-settings').forEach(cfg=>{
-  const lang=cfg.dataset.lang;
-  cfg.querySelector('.voice-select').onchange=e=>voiceSettings[lang].voiceURI=e.target.value;
-  const rate=cfg.querySelector('.rate-range'), rv=cfg.querySelector('.rate-value');
-  rate.oninput=e=>{rv.textContent=e.target.value;voiceSettings[lang].rate=+e.target.value;};
-  rate.value=voiceSettings[lang].rate; rv.textContent=rate.value;
-  const pitch=cfg.querySelector('.pitch-range'), pv=cfg.querySelector('.pitch-value');
-  pitch.oninput=e=>{pv.textContent=e.target.value;voiceSettings[lang].pitch=+e.target.value;};
-  pitch.value=voiceSettings[lang].pitch; pv.textContent=pitch.value;
-});
-// Card builder
-function createCard(d,i){
-  const card=document.createElement('div'); card.className='flashcard'; card.dataset.side=0;
-  const badge=document.createElement('span'); badge.className='remembered-badge'; badge.textContent='Remembered ✓';
-  card.append(badge);
+speechSynthesis.onvoiceschanged = populateVoiceSelects;
+
+//  Build one card -----------------------------------------------------------
+function createCard(data,idx){ const card=document.createElement('div');
+  card.className='flashcard'; card.dataset.side=0;
+  const badge=document.createElement('span'); badge.className='remembered-badge'; badge.textContent='Remembered ✓'; card.append(badge);
   const content=document.createElement('div'); content.className='content'; card.append(content);
-  const render=()=>{ content.textContent=[d.arabic,d.english,d.french][+card.dataset.side]; };
-  render();
-  card.onclick=e=>{ if(!e.target.closest('button')){ card.dataset.side=(+card.dataset.side+1)%3; render(); } };
-  const btns=document.createElement('div'); btns.className='buttons';
-  const remBtn=document.createElement('button'); remBtn.className='remember-button';
-  const applyR=st=>{ card.classList.toggle('remembered',st); remBtn.classList.toggle('remembered',st);
-                     remBtn.textContent=st?'Unmark Remembered':'Mark as Remembered'; };
-  applyR(!!rememberedStates[i]);
-  remBtn.onclick=()=>{ rememberedStates[i]=!rememberedStates[i]; applyR(rememberedStates[i]); saveRemembered(); };
-  btns.append(remBtn);
-  const playBtn=document.createElement('button'); playBtn.className='play-button'; playBtn.textContent='🔊';
-  playBtn.onclick=()=>{
-    const side=+card.dataset.side, txt=[d.arabic,d.english,d.french][side], lang=['ar','en','fr'][side];
-    const u=new SpeechSynthesisUtterance(txt), s=voiceSettings[lang];
-    if(s.voiceURI) u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===s.voiceURI); else u.lang=lang;
-    u.rate=s.rate; u.pitch=s.pitch; speechSynthesis.speak(u);
-  };
-  btns.append(playBtn);
-  card.append(btns);
+  const render=()=>content.textContent=data[LANGS[+card.dataset.side]]||''; render();
+
+  card.onclick=e=>{ if(e.target.closest('button'))return;
+    card.dataset.side=(+card.dataset.side+1)%LANGS.length; render(); };
+
+  const btns=document.createElement('div'); btns.className='buttons'; card.append(btns);
+
+  const rem=document.createElement('button'); rem.className='remember-button';
+  const applyR=st=>{{ card.classList.toggle('remembered',st); rem.classList.toggle('remembered',st);
+                      rem.textContent=st?'Unmark Remembered':'Mark as Remembered'; }};
+  applyR(!!remembered[idx]);
+  rem.onclick=()=>{{ remembered[idx]=!remembered[idx]; applyR(remembered[idx]); saveRemembered(); }};
+  btns.append(rem);
+
+  const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
+  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+      const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
+      if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
+      u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  btns.append(play);
+
   return card;
 }
-// Flip-all
-document.getElementById('flip-all-button').onclick=()=>{
-  document.querySelectorAll('.flashcard').forEach((c,i)=>{
-    c.dataset.side=0; c.querySelector('.content').textContent = cards[i].arabic;
-  });
-};
-// Init
-window.addEventListener('DOMContentLoaded',()=>{
-  const cont=document.getElementById('card-container');
-  cards.forEach((c,i)=>cont.append(createCard(c,i)));
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-});
+
+//  Settings modal -----------------------------------------------------------
+const modal=document.getElementById('settings-modal');
+document.getElementById('settings-button').onclick=()=>{{ populateVoiceSelects(); modal.style.display='flex'; }};
+modal.querySelector('.close').onclick=()=>{{ modal.style.display='none';
+    localStorage.setItem('flashcardVoiceSettings',JSON.stringify(voiceSettings)); }};
+document.querySelectorAll('.lang-settings').forEach(cfg=>{{
+    const lang=cfg.dataset.lang;
+    cfg.querySelector('.voice-select').onchange=e=>voiceSettings[lang].voiceURI=e.target.value;
+    const rate=cfg.querySelector('.rate-range'),rv=cfg.querySelector('.rate-value');
+    rate.oninput=e=>{{ rv.textContent=e.target.value; voiceSettings[lang].rate=+e.target.value; }};
+    rate.value=voiceSettings[lang].rate; rv.textContent=rate.value;
+    const pitch=cfg.querySelector('.pitch-range'),pv=cfg.querySelector('.pitch-value');
+    pitch.oninput=e=>{{ pv.textContent=e.target.value; voiceSettings[lang].pitch=+e.target.value; }};
+    pitch.value=voiceSettings[lang].pitch; pv.textContent=pitch.value;
+}});
+
+//  Flip-all button ----------------------------------------------------------
+document.getElementById('flip-all-button').onclick=()=>document.querySelectorAll('.flashcard').forEach((c,i)=>{{
+    c.dataset.side=0; c.querySelector('.content').textContent=CARDS[i][LANGS[0]]||''; }});
+
+//  Build cards on DOM ready -------------------------------------------------
+window.addEventListener('DOMContentLoaded',()=>{{
+    const cont=document.getElementById('card-container'); CARDS.forEach((d,i)=>cont.append(createCard(d,i)));
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+}});
+
+//  ---- Return button with graceful fallback -------------------------------
+document.getElementById('return-button').onclick=()=>{{
+    if(history.length>1) history.back();
+    else location.href='index.html';   // ◀️ change if your “home” isn’t index.html
+}};
 </script>
-<p style="margin:20px 0;">
-  <a href="index_en.html">← Back to English index</a>
-</p>
 </body></html>
