@@ -72,23 +72,34 @@
       touch-action: manipulation;
     }
 
-    /* ⬇ Extra large space after every 4 tiles */
     .grid a:nth-child(4n) {
       margin-bottom: 5rem;
     }
 
+    .grid a.done {
+      filter: var(--done-filter);
+    }
+
+    .done-toggle {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 1.2rem;
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      z-index: 10;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .grid a.done .done-toggle {
+      opacity: 0.5;
+    }
+
     .grid a:hover  { background: var(--primary); color: #fff }
     .grid a:active { transform: scale(.97) }
-    .grid a.done   { filter: var(--done-filter) }
-
-    .grid a.done::after {
-      content: "✔";
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      font-size: 1.2em;
-      color: var(--primary);
-    }
 
     #return-button {
       position: fixed;
@@ -151,26 +162,26 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const HOLD = 800;
       document.querySelectorAll('.grid a').forEach(tile => {
-        let timer = null;
         const href = tile.getAttribute('href');
+
+        // Create and add the ✔ button
+        const doneBtn = document.createElement('button');
+        doneBtn.innerHTML = '✔';
+        doneBtn.className = 'done-toggle';
+        tile.appendChild(doneBtn);
+
+        // Restore saved state
         if (localStorage.getItem('done_' + href) === 'true') {
           tile.classList.add('done');
         }
 
-        const start = () => timer = setTimeout(() => {
+        // Toggle on click
+        doneBtn.addEventListener('click', (e) => {
+          e.preventDefault(); // Prevent tile navigation
           tile.classList.toggle('done');
           localStorage.setItem('done_' + href, tile.classList.contains('done'));
-        }, HOLD);
-
-        const cancel = () => clearTimeout(timer);
-
-        tile.addEventListener('mousedown', start);
-        tile.addEventListener('touchstart', start);
-        tile.addEventListener('mouseup', cancel);
-        tile.addEventListener('mouseleave', cancel);
-        tile.addEventListener('touchend', cancel);
+        });
       });
     });
   </script>
