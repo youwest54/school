@@ -60,6 +60,7 @@
       transition: background 0.2s, color 0.2s, transform 0.1s;
       text-align: center;
       user-select: none;
+      touch-action: manipulation;    /* allow normal taps */
     }
     .grid a:hover {
       background: var(--primary);
@@ -106,34 +107,34 @@
   </div>
 
   <script>
-  // Long-press (800ms) to toggle “done” state and save in localStorage
-  document.addEventListener('DOMContentLoaded', () => {
-    const THRESHOLD = 800;
-    function initTile(tile) {
-      let timer = null;
-      const href = tile.getAttribute('href');
-      // restore saved state
-      if (localStorage.getItem('done_' + href) === 'true') {
-        tile.classList.add('done');
+    // Long-press (800ms) to toggle “done” state and save in localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+      const THRESHOLD = 800;
+      function initTile(tile) {
+        let timer = null;
+        const href = tile.getAttribute('href');
+        // restore saved state
+        if (localStorage.getItem('done_' + href) === 'true') {
+          tile.classList.add('done');
+        }
+        function startPress(e) {
+          // **no more preventDefault here** so taps still work
+          timer = setTimeout(() => {
+            tile.classList.toggle('done');
+            localStorage.setItem('done_' + href, tile.classList.contains('done'));
+          }, THRESHOLD);
+        }
+        function cancelPress() {
+          clearTimeout(timer);
+        }
+        tile.addEventListener('mousedown', startPress);
+        tile.addEventListener('touchstart', startPress);
+        tile.addEventListener('mouseup', cancelPress);
+        tile.addEventListener('mouseleave', cancelPress);
+        tile.addEventListener('touchend', cancelPress);
       }
-      function startPress(e) {
-        e.preventDefault();
-        timer = setTimeout(() => {
-          tile.classList.toggle('done');
-          localStorage.setItem('done_' + href, tile.classList.contains('done'));
-        }, THRESHOLD);
-      }
-      function cancelPress() {
-        clearTimeout(timer);
-      }
-      tile.addEventListener('mousedown', startPress);
-      tile.addEventListener('touchstart', startPress);
-      tile.addEventListener('mouseup', cancelPress);
-      tile.addEventListener('mouseleave', cancelPress);
-      tile.addEventListener('touchend', cancelPress);
-    }
-    document.querySelectorAll('.grid a').forEach(initTile);
-  });
+      document.querySelectorAll('.grid a').forEach(initTile);
+    });
   </script>
 <script>
   if('serviceWorker' in navigator){
