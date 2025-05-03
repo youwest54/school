@@ -20,15 +20,16 @@
       font-size: 1.8rem;
     }
 
-    /* Flashcards */
+    /* Flashcard styles */
     .flashcard {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 12px;
-      padding: 1rem;
-      margin-bottom: 1rem;
+      padding: 1.5rem;        /* extra padding */
+      margin-bottom: 1.5rem;  /* more space between cards */
       position: relative;
       touch-action: manipulation;
+      min-height: 200px;      /* make each card taller */
     }
     .flashcard.remembered { border-color: #43a047; }
     .remembered-badge {
@@ -46,7 +47,7 @@
     }
     .content {
       font-size: 1.5rem;
-      min-height: 7em;
+      min-height: 7em;        /* larger text area */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -90,7 +91,7 @@
     .modal-content {
       background: #fff;
       border-radius: 12px;
-      padding: 1.5rem;       /* increased padding */
+      padding: 1.5rem;
       max-width: 90%;
       width: 320px;
     }
@@ -116,21 +117,25 @@
     .lang-settings {
       padding: 1rem 0;
       margin-bottom: 1.5rem;
-      min-height: 300px;
+      min-height: 180px;
     }
 
-    /* Settings & Flip-all buttons */
+    /* Pin buttons bottom-right */
     #settings-button,
     #flip-all-button {
       position: fixed;
-      top: 1rem;
-      background: none;
+      bottom: 1rem;
+      z-index: 1001;
+      background: #fff;
       border: none;
+      border-radius: 50%;
+      padding: 0.5rem;
       font-size: 1.5rem;
       cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
     #settings-button { right: 1rem; }
-    #flip-all-button { right: 3.5rem; }
+    #flip-all-button { right: 4rem; }
   </style>
 </head>
 <body>
@@ -184,28 +189,24 @@
   <script>
     // Full cards array
     const cards = [
-      { arabic: "دقيق",                       english: "Accurate",                                   french: "Précis" },
-      { arabic: "ضالم أو مظلوم",             english: "Oppressor or oppressed",                     french: "Oppresseur ou opprimé" },
-      { arabic: "حضانة الأطفال بعد الطلاق",   english: "Child Custody",                               french: "La garde des enfants بعد divorce" },
-      { arabic: "مجاري",                      english: "Sewers",                                      french: "Égouts" },
-      { arabic: "هضم",                        english: "Digestion",                                   french: "Digestion" },
-      { arabic: "أنا كنت على وشك أن أصاب بسيارة", english: "I almost got hit by a car.",               french: "J'étais sur le point de me faire renverser" },
-      { arabic: "كنت قريبًا من أن أصاب بسيارة",english: "I was this close to being hit by a car.",     french: "J'étais si près d'être percuté par une voiture" },
-      { arabic: "مغترب",                      english: "Expatriate",                                  french: "Expatrié" },
+      { arabic: "دقيق", english: "Accurate", french: "Précis" },
+      { arabic: "ضالم أو مظلوم", english: "Oppressor or oppressed", french: "Oppresseur ou opprimé" },
+      { arabic: "حضانة الأطفال بعد الطلاق", english: "Child Custody", french: "La garde des enfants بعد divorce" },
+      { arabic: "مجاري", english: "Sewers", french: "Égouts" },
+      { arabic: "هضم", english: "Digestion", french: "Digestion" },
+      { arabic: "أنا كنت على وشك أن أصاب بسيارة", english: "I almost got hit by a car.", french: "J'étais sur le point de me faire renverser" },
+      { arabic: "كنت قريبًا من أن أصاب بسيارة", english: "I was this close to being hit by a car.", french: "J'étais si près d'être percuté par une voiture" },
+      { arabic: "مغترب", english: "Expatriate", french: "Expatrié" },
       { arabic: "كرة القدم يمكن أن تزيد الناتج المحلي", english: "Football can increase GDP by 2% to 5%.", french: "Le football peut augmenter le PIB de 2% à 5%." },
-      { arabic: "أين يمكن أن أجد ذلك؟",        english: "Where can I find it?",                       french: "Où est-ce que je peux en trouver ?" },
-      { arabic: "تنوع",                       english: "Variety",                                     french: "Variété" },
-      { arabic: "أبعده قدر الإمكان",          english: "Keep him as far away as possible",           french: "Éloigne-le autant que possible" },
-      { arabic: "مراقبة الأنشطة",             english: "Monitoring activities",                      french: "Suivi des activités" },
-      { arabic: "جرح",                        english: "Wound",                                       french: "Blessure" }
+      { arabic: "أين يمكن أن أجد ذلك؟", english: "Where can I find it?", french: "Où est-ce que je peux en trouver ?" },
+      { arabic: "تنوع", english: "Variety", french: "Variété" },
+      { arabic: "أبعده قدر الإمكان", english: "Keep him as far away as possible", french: "Éloigne-le autant que possible" },
+      { arabic: "مراقبة الأنشطة", english: "Monitoring activities", french: "Suivi des activités" },
+      { arabic: "جرح", english: "Wound", french: "Blessure" }
     ];
 
-    // Voice settings and persistence
-    const voiceSettings = {
-      ar: { voiceURI: null, rate: 1, pitch: 1 },
-      en: { voiceURI: null, rate: 1, pitch: 1 },
-      fr: { voiceURI: null, rate: 1, pitch: 1 },
-    };
+    // Voice settings persistence
+    const voiceSettings = { ar:{voiceURI:null,rate:1,pitch:1}, en:{voiceURI:null,rate:1,pitch:1}, fr:{voiceURI:null,rate:1,pitch:1} };
     const saved = localStorage.getItem('flashcardVoiceSettings');
     if (saved) Object.assign(voiceSettings, JSON.parse(saved));
 
@@ -228,7 +229,7 @@
     }
     speechSynthesis.onvoiceschanged = populateVoiceSelects;
 
-    // Settings modal open/close
+    // Modal open/close
     const modal = document.getElementById('settings-modal');
     document.getElementById('settings-button').onclick = () => {
       populateVoiceSelects();
@@ -239,7 +240,7 @@
       localStorage.setItem('flashcardVoiceSettings', JSON.stringify(voiceSettings));
     };
 
-    // Wire up rate/pitch/value inputs
+    // Wire up controls
     modal.querySelectorAll('.lang-settings').forEach(cfg => {
       const lang = cfg.dataset.lang;
       cfg.querySelector('.voice-select').onchange = e => {
@@ -252,7 +253,7 @@
         voiceSettings[lang].rate = +e.target.value;
       };
       rate.value = voiceSettings[lang].rate;
-      rateVal.textContent = voiceSettings[lang].rate;
+      rateVal.textContent = rate.value;
 
       const pitch = cfg.querySelector('.pitch-range');
       const pitchVal = cfg.querySelector('.pitch-value');
@@ -261,10 +262,10 @@
         voiceSettings[lang].pitch = +e.target.value;
       };
       pitch.value = voiceSettings[lang].pitch;
-      pitchVal.textContent = voiceSettings[lang].pitch;
+      pitchVal.textContent = pitch.value;
     });
 
-    // Build a card
+    // Create a card
     function createCard(data) {
       const card = document.createElement('div');
       card.className = 'flashcard';
@@ -279,7 +280,6 @@
       content.className = 'content';
       card.append(content);
 
-      let remembered = false;
       function render() {
         content.textContent = [data.arabic, data.english, data.french][+card.dataset.side];
       }
@@ -299,8 +299,7 @@
       remBtn.className = 'remember-button';
       remBtn.textContent = 'Mark as Remembered';
       remBtn.onclick = () => {
-        remembered = !remembered;
-        card.classList.toggle('remembered', remembered);
+        const remembered = card.classList.toggle('remembered');
         remBtn.classList.toggle('remembered', remembered);
         remBtn.textContent = remembered ? 'Unmark Remembered' : 'Mark as Remembered';
       };
@@ -315,11 +314,8 @@
         const lang = ['ar','en','fr'][side];
         const utt = new SpeechSynthesisUtterance(text);
         const s = voiceSettings[lang];
-        if (s.voiceURI) {
-          utt.voice = speechSynthesis.getVoices().find(v => v.voiceURI === s.voiceURI);
-        } else {
-          utt.lang = lang;
-        }
+        if (s.voiceURI) utt.voice = speechSynthesis.getVoices().find(v => v.voiceURI === s.voiceURI);
+        else utt.lang = lang;
         utt.rate = s.rate;
         utt.pitch = s.pitch;
         speechSynthesis.speak(utt);
@@ -330,22 +326,21 @@
       return card;
     }
 
-    // Flip all button
+    // Flip all to Arabic
     document.getElementById('flip-all-button').onclick = () => {
       document.querySelectorAll('.flashcard').forEach(card => {
         card.dataset.side = 0;
-        card.querySelector('.content').textContent = card.__data__.arabic;
+        card.querySelector('.content').textContent = card.querySelector('.content').textContent = card.__data__.arabic;
       });
     };
 
-    // Render on DOM ready
+    // Render on DOMContentLoaded
     window.addEventListener('DOMContentLoaded', () => {
       const container = document.getElementById('card-container');
       cards.forEach(c => {
-        const cardEl = createCard(c);
-        // store data for flip-all convenience
-        cardEl.__data__ = c;
-        container.append(cardEl);
+        const el = createCard(c);
+        el.__data__ = c;  // store for flip-all
+        container.append(el);
       });
     });
   </script>
