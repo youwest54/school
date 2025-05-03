@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Flashcards</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fafafa;max-width:600px;margin:auto;padding:1rem}
+h1{text-align:center;margin-bottom:1rem;font-size:1.8rem}
+.flashcard{background:#fff;border:1px solid #ddd;border-radius:12px;padding:1rem;margin-bottom:1rem;position:relative;touch-action:manipulation;cursor:pointer}
+.flashcard.remembered{border-color:#43a047}
+.remembered-badge{position:absolute;top:8px;right:12px;background:#43a047;color:#fff;border-radius:8px;padding:2px 6px;font-size:.75rem;display:none}
+.flashcard.remembered .remembered-badge{display:block}
+.content{font-size:1.5rem;min-height:2em;display:flex;align-items:center;justify-content:center;margin-bottom:.75rem}
+.buttons{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.buttons button{flex:1 1 30%;padding:.5rem;font-size:1rem;border:none;border-radius:8px;cursor:pointer}
+.remember-button{background:#eee;color:#333}
+.remember-button.remembered{background:#43a047;color:#fff}
+.play-button{background:none;font-size:1.2rem;color:#1976d2}
+</style>
+</head><body>
+<h1>Flashcards</h1>
+<div id="card-container"></div>
+<script>
+const cards=[{arabic:"\u0627\u0633\u062a\u0637\u0644\u0627\u0639 \u0627\u0644\u0631\u0623\u064a \u0627\u0644\u0639\u0627\u0645",english:"Opinion poll",french:"Sondage"},
+{arabic:"\u0627\u0644\u062d\u0643\u0648\u0645\u0629 \u062a\u0641\u0631\u0636 \u0627\u0644\u0642\u0627\u0646\u0648\u0646",english:"The government enforces the law",french:"Le gouvernement fait respecter la loi"},
+{arabic:"\u0639\u0646\u062f\u0645\u0627 \u0627\u0633\u062a\u0648\u0644\u062a \u0627\u0644\u062c\u064a\u0648\u0634 \u0627\u0644\u0628\u0631\u064a\u0637\u0627\u0646\u064a\u0629 \u0639\u0644\u0649 \u0643\u064a\u0628\u064a\u0643 \u0639\u0627\u0645 1759",english:"When the British armies captured Quebec in 1759",french:"Quand les arm\u00e9es britanniques ont pris Qu\u00e9bec en 1759"},
+{arabic:"\u0644\u0642\u062f \u0648\u0635\u062e \u0642\u0645\u064a\u0635\u064a",english:"He stained my shirt",french:"Il a tach\u00e9 ma chemise"},
+{arabic:"\u0636\u062d\u0643",english:"Giggling",french:"Rire (en gloussant)"},
+{arabic:"\u0627\u0644\u0645 \u0627\u0631\u0633\u0644\u0643 \u0644\u062a\u0630\u0647\u0628\u064a \u0648\u062a\u0646\u0627\u062f\u064a \u0644\u062c\u062f\u0643 \u0645\u0646 \u0623\u062c\u0644 \u0627\u0644\u0639\u0634\u0627\u0621\u061f",english:"Didn't I send you to call Grandpa for dinner?",french:"Ne t'ai-je pas envoy\u00e9e appeler grand-p\u00e8re pour le d\u00eener ?"},
+{arabic:"\u0639\u0646\u062f\u0645\u0627 \u062a\u0642\u062a\u0631\u0628 \u0639\u0637\u0644\u0629 \u0631\u0623\u0633 \u0627\u0644\u0633\u0646\u0629 \u062f\u0627\u0626\u0645\u0627 \u0646\u0634\u0639\u0631 \u0628\u0627\u0644\u0633\u0639\u0627\u062f\u0629",english:"When New Year's holiday approaches, we always feel happy",french:"Quand les vacances du Nouvel An approchent, nous sommes toujours heureux."},
+{arabic:"\u064a\u0631\u063a\u0628\u0648\u0646 \u0641\u064a \u0627\u0633\u062a\u063a\u0644\u0627\u0644 \u0627\u0644\u0639\u062f\u064a\u062f \u0645\u0646 \u0627\u0644\u0623\u0645\u0648\u0631 \u0639\u0644\u0649 \u062d\u0633\u0627\u0628 \u0627\u0644\u0646\u0627\u0633",english:"They want to exploit many things at the expense of the people",french:"Ils veulent exploiter beaucoup de choses aux d\u00e9pens des gens"},
+{arabic:"\u0639\u0644\u0645 \u0627\u0644\u0641\u0644\u0643",english:"Astronomy",french:"Astronomie"},
+{arabic:"\u062a\u0648\u0633\u0639 \u0627\u0644\u0625\u0645\u0628\u0631\u0627\u0637\u0648\u0631\u064a\u0629 \u0627\u0644\u0645\u063a\u0648\u0644\u064a\u0629",english:"The expansion of the Mongol Empire",french:"L'expansion de l'Empire mongol"},
+{arabic:"\u0627\u0644\u0641\u0646 \u064a\u0645\u0643\u0646 \u0623\u0646 \u064a\u0639\u0643\u0633 \u0645\u0646\u0638\u0648\u0631 \u0627\u0644\u0641\u0646\u0627\u0646",english:"Art can reflect the artist's perspective",french:"L'art peut refl\u00e9ter la perspective de l'artiste"},
+{arabic:"\u062a\u0633\u0628\u0628 \u062a\u0645\u0627\u0637\u0644 \u0627\u0644\u0645\u0633\u062a\u0645\u0631 \u0641\u064a \u0641\u0642\u062f\u0627\u0646 \u0627\u0644\u0645\u0648\u0627\u0639\u064a\u062f \u0627\u0644\u0646\u0647\u0627\u0626\u064a\u0629 \u0641\u064a \u0627\u0644\u0639\u0645\u0644",english:"His constant procrastination led to missed deadlines at work.",french:"Sa procrastination constante a conduit \u00e0 manquer les d\u00e9lais au travail."},
+{arabic:"\u0628\u0637\u0631\u064a\u0642\u0629 \u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u062a\u0646\u0628\u0624",english:"In a predictable way",french:"D'une mani\u00e8re pr\u00e9visible"},
+{arabic:"\u0643\u0645\u0627 \u064a\u064f\u0645\u0643\u0646 \u062a\u0648\u0642\u0651\u0639\u0647",english:"As can be expected",french:"Comme on peut s'y attendre"},
+{arabic:"\u0627\u062a\u0651\u064f\u0647\u0645 \u0627\u0644\u0648\u0632\u064a\u0631 \u0628\u0623\u0646\u0647 \u064a\u062d\u0627\u0648\u0644 \u0639\u0631\u0642\u0644\u0629 \u0645\u062d\u0627\u062f\u062b\u0627\u062a \u0627\u0644\u0633\u0644\u0627\u0645",english:"The minister was accused of trying to stall the peace talks",french:"Le ministre a \u00e9t\u00e9 accus\u00e9 d'essayer de bloquer les pourparlers de paix."}];
+function createCard(d){
+  const card=document.createElement('div');card.className='flashcard';card.dataset.side=0;
+  const badge=document.createElement('span');badge.className='remembered-badge';badge.textContent='Remembered ✓';
+  card.appendChild(badge);
+  const content=document.createElement('div');content.className='content';card.appendChild(content);
+  function render(){content.textContent=[d.arabic,d.english,d.french][+card.dataset.side]}
+  render();
+  card.addEventListener('click',e=>{
+    if(!e.target.closest('button')){
+      card.dataset.side=(+card.dataset.side+1)%3;render();
+    }
+  });
+  const btns=document.createElement('div');btns.className='buttons';
+  let rem=false;
+  const rb=document.createElement('button');
+  rb.className='remember-button';rb.textContent='Mark as Remembered';
+  rb.addEventListener('click',e=>{
+    e.stopPropagation();rem=!rem;
+    card.classList.toggle('remembered',rem);
+    rb.classList.toggle('remembered',rem);
+    rb.textContent=rem?'Unmark Remembered':'Mark as Remembered';
+  });
+  btns.appendChild(rb);
+  const pb=document.createElement('button');
+  pb.className='play-button';pb.textContent='🔊';pb.setAttribute('aria-label','Play');
+  pb.addEventListener('click',e=>{
+    e.stopPropagation();
+    const txt=content.textContent;
+    const lang=['ar','en','fr'][+card.dataset.side];
+    const u=new SpeechSynthesisUtterance(txt);
+    u.lang=lang;speechSynthesis.speak(u);
+  });
+  btns.appendChild(pb);
+  card.appendChild(btns);
+  return card;
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  const c=document.getElementById('card-container');
+  cards.forEach(d=>c.appendChild(createCard(d)));
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+});
+</script>
+</body></html>

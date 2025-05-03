@@ -1,15 +1,104 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1976d2" />
-    <link rel="manifest" href="/manifest.json" />
-    <title>Vite + React</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#1976d2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Main Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1 {
+            margin-top: 40px;
+            color: #333;
+            text-align: center;
+            font-size: 2em;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+            max-width: 400px;
+        }
+        li {
+            margin: 20px 0;
+        }
+        a {
+            display: block;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
+            color: #1976d2;
+            font-size: 1.3em;
+            padding: 18px 0;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            transition: background 0.2s, color 0.2s, transform 0.1s;
+            touch-action: manipulation;
+        }
+        a:active {
+            transform: scale(0.97);
+        }
+        a:hover {
+            background: #1976d2;
+            color: #fff;
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.3em;
+            }
+            ul {
+                max-width: 95vw;
+            }
+            a {
+                font-size: 1.1em;
+                padding: 14px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome! Please choose a page:</h1>
+    <ul>
+        <li><a href="page2_en.html">PAGE2 EN</a></li>
+        <li><a href="part 10_flashcards.html">PART 10 FLASHCARDS</a></li>
+        <li><a href="part 11_flashcards.html">PART 11 FLASHCARDS</a></li>
+        <li><a href="part 12_flashcards.html">PART 12 FLASHCARDS</a></li>
+        <li><a href="part 13_flashcards.html">PART 13 FLASHCARDS</a></li>
+        <li><a href="part 14_flashcards.html">PART 14 FLASHCARDS</a></li>
+        <li><a href="part 15_flashcards.html">PART 15 FLASHCARDS</a></li>
+        <li><a href="part 16_flashcards.html">PART 16 FLASHCARDS</a></li>
+        <li><a href="part 17_flashcards.html">PART 17 FLASHCARDS</a></li>
+        <li><a href="part 18_flashcards.html">PART 18 FLASHCARDS</a></li>
+        <li><a href="part 1_flashcards.html">PART 1 FLASHCARDS</a></li>
+        <li><a href="part 3_flashcards.html">PART 3 FLASHCARDS</a></li>
+        <li><a href="part 4_flashcards.html">PART 4 FLASHCARDS</a></li>
+        <li><a href="part 5_flashcards.html">PART 5 FLASHCARDS</a></li>
+        <li><a href="part 6_flashcards.html">PART 6 FLASHCARDS</a></li>
+        <li><a href="part 7_flashcards.html">PART 7 FLASHCARDS</a></li>
+        <li><a href="part 8_flashcards.html">PART 8 FLASHCARDS</a></li>
+        <li><a href="part 9_flashcards.html">PART 9 FLASHCARDS</a></li>
+    </ul>
+<script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register('./service-worker.js');
+    });
+  }
+</script>
+</body>
 </html>

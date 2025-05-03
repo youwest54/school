@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Flashcards</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fafafa;max-width:600px;margin:auto;padding:1rem}
+h1{text-align:center;margin-bottom:1rem;font-size:1.8rem}
+.flashcard{background:#fff;border:1px solid #ddd;border-radius:12px;padding:1rem;margin-bottom:1rem;position:relative;touch-action:manipulation;cursor:pointer}
+.flashcard.remembered{border-color:#43a047}
+.remembered-badge{position:absolute;top:8px;right:12px;background:#43a047;color:#fff;border-radius:8px;padding:2px 6px;font-size:.75rem;display:none}
+.flashcard.remembered .remembered-badge{display:block}
+.content{font-size:1.5rem;min-height:2em;display:flex;align-items:center;justify-content:center;margin-bottom:.75rem}
+.buttons{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.buttons button{flex:1 1 30%;padding:.5rem;font-size:1rem;border:none;border-radius:8px;cursor:pointer}
+.remember-button{background:#eee;color:#333}
+.remember-button.remembered{background:#43a047;color:#fff}
+.play-button{background:none;font-size:1.2rem;color:#1976d2}
+</style>
+</head><body>
+<h1>Flashcards</h1>
+<div id="card-container"></div>
+<script>
+const cards=[{arabic:"\u062a\u0647\u062c",english:"Spell",french:"\u00c9peler"},
+{arabic:"\u062a\u0646\u0627\u063a\u0645",english:"Coherence",french:"Coh\u00e9rence"},
+{arabic:"\u062c\u0633\u062f \u0631\u0627\u0626\u0639 \u0628\u0631\u0648\u062d \u0642\u0627\u062a\u0645\u0629",english:"Gorgeous body with a dark spirit",french:"Un corps magnifique avec une \u00e2me sombre"},
+{arabic:"\u0644\u0627 \u0627\u062d\u0628 \u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u0645\u0637\u0644\u0642",english:"I don\u2019t like to talk in absolutes",french:"Je n'aime pas parler en termes absolus"},
+{arabic:"\u0645\u0633\u0626\u0648\u0644\u064a\u0629",english:"Accountability",french:"Responsabilit\u00e9"},
+{arabic:"\u0645\u0639\u0641\u0649",english:"Exempted",french:"Exempt\u00e9"},
+{arabic:"communautarisme",english:"Communitarism",french:"Communautarisme"},
+{arabic:"\u0639\u062f\u0644 \u0627\u0644\u0646\u0648\u0627\u0628 \u0646\u0635 \u0627\u0644\u0642\u0627\u0646\u0648\u0646 \u0647\u0630\u0627",english:"The deputies amended this law",french:"Les d\u00e9put\u00e9s ont amend\u00e9 ce texte de loi"},
+{arabic:"\u063a\u064a\u0631 \u0648\u0627\u0639\u064d",english:"Oblivious",french:"Inconscient / Inconsciente"},
+{arabic:"\u0648\u0627\u0644\u0644\u064a \u064a\u062e\u0644\u064a \u0645\u062f\u064a\u0646\u0647 \u0646\u064a\u0648\u0631\u0643 \u0645\u062a\u0645\u064a\u0632\u0647",english:"What makes New York City special?",french:"Qu'est-ce qui distingue la ville de New York ?"},
+{arabic:"\u0644\u0645\u0627\u0630\u0627 \u062a\u0647\u062a\u0645 \u0628\u0645\u0639\u0631\u0641\u0629 \u0630\u0644\u0643\u061f",english:"But why do you care to know?",french:"Mais pourquoi tu te souci\u00e9s de savoir ?"},
+{arabic:"\u062e\u0632\u0627\u0626\u0646",english:"Wardrobes",french:"Placards"},
+{arabic:"\u062a\u0645\u0646\u064a\u062a \u0644\u0648 \u0643\u0646\u062a \u0623\u0643\u062b\u0631 \u062d\u0643\u0645\u0629 \u0641\u064a \u0630\u0644\u0643 \u0627\u0644\u0648\u0642\u062a",english:"I wished I was wiser at the time",french:"J'aurais aim\u00e9 \u00eatre plus sage \u00e0 l'\u00e9poque"},
+{arabic:"\u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u0628\u0644\u062f \u0627\u0644\u062c\u0645\u064a\u0639 \u062d\u0631 \u0641\u064a \u0641\u0639\u0644 \u0645\u0627 \u064a\u0634\u0627\u0621\u060c \u0625\u0630\u0627 \u0644\u0645 \u064a\u0639\u062c\u0628\u0643 \u0630\u0644\u0643",english:"In this country, everyone is free to do what they want. If you don't like that, feel free to go back to where your ancestors came from because this land is not yours.",french:"Dans ce pays, chacun est libre de faire ce qu'il veut. Si vous n'aimez pas \u00e7a, n'h\u00e9sitez pas \u00e0 retourner d'o\u00f9 viennent vos anc\u00eatres parce que cette terre n'est pas la v\u00f4tre."},
+{arabic:"\u0634\u064a\u0626\u0627 \u0641\u0634\u064a\u0626\u0627\u061b \u0628\u0627\u0633\u062a\u0645\u0631\u0627\u0631",english:"Little by little; constantly",french:"Au fur et \u00e0 mesure"},
+{arabic:"\u064a\u062c\u0628 \u0639\u0644\u0649 \u062a\u0631\u0643\u064a\u0627 \u0623\u0646 \u062a\u0642\u062a\u0635\u0631 \u0639\u0644\u0649 \u062e\u0631\u064a\u0637\u062a\u0647\u0627 \u0627\u0644\u062c\u063a\u0631\u0627\u0641\u064a\u0629",english:"Turkey should limit itself to its geographical borders and not intervene in conflicts.",french:"La Turquie doit se limiter \u00e0 sa carte g\u00e9ographique et ne plus intervenir dans les conflits."},
+{arabic:"\u0645\u062d\u0627",english:"Rub out",french:"Effacer"},
+{arabic:"\u0625\u0646\u0647 \u062a\u0623\u062b\u064a\u0631 \u0623\u064a\u062f\u064a\u0648\u0644\u0648\u062c\u064a \u064a\u0623\u062a\u064a \u0645\u0646 \u0628\u0642\u0627\u064a\u0627 \u0627\u0644\u0641\u062a\u0631\u0629 \u0627\u0644\u0627\u0633\u062a\u0639\u0645\u0627\u0631\u064a\u0629 \u0627\u0644\u0642\u062f\u064a\u0645\u0629",english:"It's an ideological effect from the remnants of the colonial period.",french:"C'est un effet id\u00e9ologique qui vient de l'ancien vestige de la p\u00e9riode coloniale."},
+{arabic:"\u0647\u0630\u0627 \u0627\u0644\u0646\u0648\u0639 \u0645\u0646 \u0627\u0644\u0633\u0644\u0648\u0643 \u0647\u0648 \u062c\u0632\u0621 \u0645\u0646 \u0628\u0642\u0627\u064a\u0627 \u0627\u0644\u0627\u0633\u062a\u0639\u0645\u0627\u0631",english:"This kind of behavior is part of the remnants of colonialism.",french:"Ce genre de comportement fait partie d'un vestige de la colonisation."},
+{arabic:"\u062a\u0635\u0631\u0641 \u063a\u064a\u0631 \u0627\u0646\u0633\u0627\u0646\u064a",english:"Inhumane behavior",french:"Comportement inhumain"},
+{arabic:"\u062a\u062f\u062e\u0644",english:"Interfere",french:"Interf\u00e9rer"},
+{arabic:"\u062a\u0645 \u0641\u0647\u0645 \u0631\u0633\u0627\u0644\u0629 \u0627\u0644\u062d\u062c\u0631 \u0627\u0644\u0635\u062d\u064a \u0647\u0646\u0627",english:"The confinement message was understood here.",french:"Le message de confinement a \u00e9t\u00e9 compris ici."},
+{arabic:"\u0639\u0646\u062f\u0645\u0627 \u062a\u0642\u062a\u0631\u0628",english:"When it comes closer",french:"Quand \u00e7a s'approche"},
+{arabic:"\u0645\u063a\u0631\u064a",english:"Tempting",french:"Tentant"},
+{arabic:"\u0639\u0631\u064a\u0633",english:"Bridegroom",french:"Jeune mari\u00e9"},
+{arabic:"\u064a\u0642\u0627\u0644 \u0623\u0646 \u0627\u0644\u0645\u0634\u062a\u0628\u0647 \u0628\u0647 \u062e\u062f\u0639 \u0639\u062f\u062f\u064b\u0627 \u0645\u0646 \u0643\u0628\u0627\u0631 \u0627\u0644\u0633\u0646",english:"The suspect apparently conned a number of elderly people.",french:"Le suspect a apparemment escroqu\u00e9 un certain nombre de personnes \u00e2g\u00e9es."},
+{arabic:"\u0627\u0644\u0623\u0646\u0627\u0646\u064a\u0629",english:"Selfishness",french:"\u00c9go\u00efsme"},
+{arabic:"\u0627\u0644\u064a\u0627\u0628\u0627\u0646 \u0633\u062a\u0633\u062a\u0636\u064a\u0641 \u0627\u0644\u0623\u0644\u0639\u0627\u0628 \u0627\u0644\u0623\u0648\u0644\u0645\u0628\u064a\u0629 \"\u0643\u0645\u0627 \u0647\u0648 \u0645\u062e\u0637\u0637\"",english:"Japan will host the Olympics \"as planned,\" assures the Prime Minister.",french:"Le Japon accueillera les JO \u00ab comme pr\u00e9vu \u00bb, assure le Premier ministre."},
+{arabic:"\u0645\u062a\u0636\u0627\u0645\u0646",english:"United",french:"Solidaire"},
+{arabic:"\u0647\u0630\u0627 \u0627\u0644\u0641\u064a\u0631\u0648\u0633 \u0623\u0638\u0647\u0631 \u0644\u0646\u0627 \u0627\u0644\u0643\u062b\u064a\u0631",english:"This virus has shown us a lot.",french:"Ce virus nous a beaucoup montr\u00e9."},
+{arabic:"\u0644\u0645\u0627\u0630\u0627 \u062a\u0646\u0641\u062f \u0628\u0637\u0627\u0631\u064a\u062a\u064a \u0628\u0647\u0630\u0647 \u0627\u0644\u0633\u0631\u0639\u0629\u061f",english:"Why is my battery running down so fast?",french:"Pourquoi ma batterie s'\u00e9puise si vite ?"},
+{arabic:"\u0623\u0646\u0627\u0628\u064a\u0628",english:"Pipes",french:"Tuyaux"},
+{arabic:"\u0635\u062f\u0645\u0629 \u0648\u0641\u0627\u0629 \u0648\u0627\u0644\u062f\u0647\u0627 \u062a\u0624\u0630\u064a\u0647\u0627 \u062d\u0642\u064b\u0627",english:"The shock of her father's death really hurt her.",french:"Le choc de la mort de son p\u00e8re lui a vraiment fait mal."},
+{arabic:"\u0623\u062d\u062f\u0647\u0645 \u064a\u0633\u0627\u0639\u062f \u0647\u0630\u0627 \u0627\u0644\u0631\u062c\u0644\u060c \u0625\u0646\u0647 \u064a\u062e\u062a\u0646\u0642!",english:"Someone help that man, he's choking!",french:"Quelqu'un aide cet homme, il s'\u00e9touffe !"},
+{arabic:"\u0627\u062e\u062a\u0646\u0642",english:"Choke",french:"\u00c9touffer"},
+{arabic:"\u0643\u062f\u062a \u0623\u0646 \u0623\u0641\u0642\u062f \u0648\u0639\u064a\u064a \u0639\u0646\u062f\u0645\u0627 \u0623\u062e\u0628\u0631\u0648\u0646\u064a \u0628\u0627\u0644\u0633\u0639\u0631",english:"I nearly fainted when they told me the price.",french:"Je me suis presque \u00e9vanoui quand ils m'ont dit le prix."},
+{arabic:"\u0647\u0630\u0627 \u063a\u0631\u064a\u0628",english:"That\u2019s strange",french:"C'est \u00e9trange"},
+{arabic:"\u0627\u0632\u062f\u062d\u0627\u0645 \u0633\u0627\u0639\u0629 \u0627\u0644\u0630\u0631\u0648\u0629",english:"Rush hour traffic",french:"Embouteillages aux heures de pointe"},
+{arabic:"\u0639\u0646\u062f\u0645\u0627 \u0627\u0633\u062a\u0648\u0644\u062a \u0627\u0644\u062c\u064a\u0648\u0634 \u0627\u0644\u0628\u0631\u064a\u0637\u0627\u0646\u064a\u0629 \u0639\u0644\u0649 \u0643\u064a\u0628\u064a\u0643 \u0648\u0645\u0648\u0646\u062a\u0631\u064a\u0627\u0644",english:"When British armies captured Quebec in 1759 and Montreal in 1760.",french:"Quand les arm\u00e9es britanniques ont captur\u00e9 Qu\u00e9bec en 1759 et Montr\u00e9al en 1760."},
+{arabic:"\u0627\u0644\u0633\u064a\u0627\u0633\u0629 \u0627\u0644\u062e\u0627\u0631\u062c\u064a\u0629",english:"Foreign Policy",french:"Politique \u00e9trang\u00e8re"}];
+function createCard(d){
+  const card=document.createElement('div');card.className='flashcard';card.dataset.side=0;
+  const badge=document.createElement('span');badge.className='remembered-badge';badge.textContent='Remembered ✓';
+  card.appendChild(badge);
+  const content=document.createElement('div');content.className='content';card.appendChild(content);
+  function render(){content.textContent=[d.arabic,d.english,d.french][+card.dataset.side]}
+  render();
+  card.addEventListener('click',e=>{
+    if(!e.target.closest('button')){
+      card.dataset.side=(+card.dataset.side+1)%3;render();
+    }
+  });
+  const btns=document.createElement('div');btns.className='buttons';
+  let rem=false;
+  const rb=document.createElement('button');
+  rb.className='remember-button';rb.textContent='Mark as Remembered';
+  rb.addEventListener('click',e=>{
+    e.stopPropagation();rem=!rem;
+    card.classList.toggle('remembered',rem);
+    rb.classList.toggle('remembered',rem);
+    rb.textContent=rem?'Unmark Remembered':'Mark as Remembered';
+  });
+  btns.appendChild(rb);
+  const pb=document.createElement('button');
+  pb.className='play-button';pb.textContent='🔊';pb.setAttribute('aria-label','Play');
+  pb.addEventListener('click',e=>{
+    e.stopPropagation();
+    const txt=content.textContent;
+    const lang=['ar','en','fr'][+card.dataset.side];
+    const u=new SpeechSynthesisUtterance(txt);
+    u.lang=lang;speechSynthesis.speak(u);
+  });
+  btns.appendChild(pb);
+  card.appendChild(btns);
+  return card;
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  const c=document.getElementById('card-container');
+  cards.forEach(d=>c.appendChild(createCard(d)));
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+});
+</script>
+</body></html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Flashcards</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fafafa;max-width:600px;margin:auto;padding:1rem}
+h1{text-align:center;margin-bottom:1rem;font-size:1.8rem}
+.flashcard{background:#fff;border:1px solid #ddd;border-radius:12px;padding:1rem;margin-bottom:1rem;position:relative;touch-action:manipulation;cursor:pointer}
+.flashcard.remembered{border-color:#43a047}
+.remembered-badge{position:absolute;top:8px;right:12px;background:#43a047;color:#fff;border-radius:8px;padding:2px 6px;font-size:.75rem;display:none}
+.flashcard.remembered .remembered-badge{display:block}
+.content{font-size:1.5rem;min-height:2em;display:flex;align-items:center;justify-content:center;margin-bottom:.75rem}
+.buttons{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.buttons button{flex:1 1 30%;padding:.5rem;font-size:1rem;border:none;border-radius:8px;cursor:pointer}
+.remember-button{background:#eee;color:#333}
+.remember-button.remembered{background:#43a047;color:#fff}
+.play-button{background:none;font-size:1.2rem;color:#1976d2}
+</style>
+</head><body>
+<h1>Flashcards</h1>
+<div id="card-container"></div>
+<script>
+const cards=[{arabic:"\u0647\u0630\u0627 \u0627\u0644\u0642\u0637 \u064a\u062a\u0635\u0631\u0641 \u0628\u0637\u0631\u064a\u0642\u0629 \u063a\u0631\u064a\u0628\u0629",english:"This cat behaves in a peculiar manner.",french:"Ce chat se comporte d'une mani\u00e8re \u00e9trange."},
+{arabic:"\u0623\u0648\u062f \u0623\u0642\u0644 \u0645\u0646",english:"Would want less than",french:"Voudrais moins que"},
+{arabic:"\u0645\u0624\u062a\u0645\u0631",english:"Conference",french:"Conf\u00e9rence"},
+{arabic:"\u0623\u0644\u0639\u0627\u0628 \u0627\u0644\u0643\u0644\u0645\u0627\u062a \u062d\u0648\u0644 \u0627\u0644\u0623\u062e\u0628\u0627\u0631",english:"Wordplay on current events",french:"Les jeux de mots sur les actualit\u00e9s"},
+{arabic:"\u0636\u0631\u0631",english:"Harm",french:"Dommage"},
+{arabic:"\u0646\u062d\u0646 \u0645\u0643\u062a\u0641\u0648\u0646 \u0630\u0627\u062a\u064a\u064b\u0627",english:"We are self-sufficient",french:"Nous sommes autosuffisants"},
+{arabic:"\u0623\u062d\u0645\u0642",english:"Douchebag",french:"Connard"},
+{arabic:"\u0643\u0627\u0646 \u064a\u0633\u062e\u0631",english:"Ironisait",french:"Ironisait"},
+{arabic:"\u0627\u0644\u0643\u0628\u0631\u064a\u0627\u0621 \u0648\u0627\u0644\u0623\u0646\u0627",english:"Pride and ego",french:"Fiert\u00e9 et ego"},
+{arabic:"\u0645\u0631\u062a\u0632\u0642",english:"Mercenary",french:"Mercenaire"},
+{arabic:"\u0642\u0644\u0642 \u0645\u0646 \u062a\u0635\u0627\u0639\u062f \u0627\u0644\u063a\u0636\u0628 \u0627\u0644\u0645\u0639\u0627\u062f\u064a \u0644\u0644\u063a\u0631\u0628",english:"Concerned about rising anti-Western anger",french:"Inqui\u00e8te d\u2019une mont\u00e9e de la col\u00e8re anti-occidentale"},
+{arabic:"\u0644\u0627 \u0632\u0644\u0646\u0627 \u0641\u064a \u0648\u0642\u062a \u0627\u0644\u0639\u0645\u0644",english:"We are still on the clock",french:"Nous sommes toujours dans le temps de travail"},
+{arabic:"\u0645\u0646\u0630 \u0645\u062a\u0649 \u062a\u0639\u0631\u0641 \u0630\u0644\u0643\u061f",english:"How long have you known?",french:"Depuis combien de temps tu sais ?"},
+{arabic:"\u062d\u0627\u0646 \u0627\u0644\u0648\u0642\u062a",english:"It\u2019s past time",french:"Il est grand temps"},
+{arabic:"\u0627\u0644\u062d\u0636\u0627\u0646\u0629",english:"Custody",french:"La garde"},
+{arabic:"\u062a\u062d\u062f\u0649",english:"Defy",french:"D\u00e9fier"}];
+function createCard(d){
+  const card=document.createElement('div');card.className='flashcard';card.dataset.side=0;
+  const badge=document.createElement('span');badge.className='remembered-badge';badge.textContent='Remembered ✓';
+  card.appendChild(badge);
+  const content=document.createElement('div');content.className='content';card.appendChild(content);
+  function render(){content.textContent=[d.arabic,d.english,d.french][+card.dataset.side]}
+  render();
+  card.addEventListener('click',e=>{
+    if(!e.target.closest('button')){
+      card.dataset.side=(+card.dataset.side+1)%3;render();
+    }
+  });
+  const btns=document.createElement('div');btns.className='buttons';
+  let rem=false;
+  const rb=document.createElement('button');
+  rb.className='remember-button';rb.textContent='Mark as Remembered';
+  rb.addEventListener('click',e=>{
+    e.stopPropagation();rem=!rem;
+    card.classList.toggle('remembered',rem);
+    rb.classList.toggle('remembered',rem);
+    rb.textContent=rem?'Unmark Remembered':'Mark as Remembered';
+  });
+  btns.appendChild(rb);
+  const pb=document.createElement('button');
+  pb.className='play-button';pb.textContent='🔊';pb.setAttribute('aria-label','Play');
+  pb.addEventListener('click',e=>{
+    e.stopPropagation();
+    const txt=content.textContent;
+    const lang=['ar','en','fr'][+card.dataset.side];
+    const u=new SpeechSynthesisUtterance(txt);
+    u.lang=lang;speechSynthesis.speak(u);
+  });
+  btns.appendChild(pb);
+  card.appendChild(btns);
+  return card;
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  const c=document.getElementById('card-container');
+  cards.forEach(d=>c.appendChild(createCard(d)));
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+});
+</script>
+</body></html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Flashcards</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fafafa;max-width:600px;margin:auto;padding:1rem}
+h1{text-align:center;margin-bottom:1rem;font-size:1.8rem}
+.flashcard{background:#fff;border:1px solid #ddd;border-radius:12px;padding:1rem;margin-bottom:1rem;position:relative;touch-action:manipulation;cursor:pointer}
+.flashcard.remembered{border-color:#43a047}
+.remembered-badge{position:absolute;top:8px;right:12px;background:#43a047;color:#fff;border-radius:8px;padding:2px 6px;font-size:.75rem;display:none}
+.flashcard.remembered .remembered-badge{display:block}
+.content{font-size:1.5rem;min-height:2em;display:flex;align-items:center;justify-content:center;margin-bottom:.75rem}
+.buttons{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.buttons button{flex:1 1 30%;padding:.5rem;font-size:1rem;border:none;border-radius:8px;cursor:pointer}
+.remember-button{background:#eee;color:#333}
+.remember-button.remembered{background:#43a047;color:#fff}
+.play-button{background:none;font-size:1.2rem;color:#1976d2}
+</style>
+</head><body>
+<h1>Flashcards</h1>
+<div id="card-container"></div>
+<script>
+const cards=[{arabic:"\u0645\u0648\u062a \u0645\u0646 \u0627\u0644\u062c\u0648\u0639",english:"To starve to death, to die of starvation",french:"Mourir de faim, mourir de la famine"},
+{arabic:"\u0627\u0644\u0637\u0631\u0641 \u0627\u0644\u0622\u062e\u0631 \u0645\u0646 \u0627\u0644\u0634\u0627\u0631\u0639 \u0627\u0644\u062a\u0627\u0644\u064a\u061f",english:"On the next block of the street",french:"Au prochain p\u00e2t\u00e9 de maisons"},
+{arabic:"\u062d\u062a\u0649 \u0627\u0644\u0639\u0631\u0633\u0627\u0646 \u0627\u0644\u062c\u062f\u062f \u064a\u062a\u062c\u0627\u062f\u0644\u0648\u0646 \u0623\u062d\u064a\u0627\u0646\u064b\u0627",english:"Even newlyweds sometimes argue",french:"M\u00eame les jeunes mari\u00e9s se disputent parfois"},
+{arabic:"\u0639\u0631\u0641 \u0632\u0645\u0644\u0627\u0621 \u0631\u0648\u0628\u0631\u062a \u0623\u0646\u0647 \u0643\u0627\u0646 \u064a\u062a\u0628\u0639 \u0646\u0638\u0627\u0645\u064b\u0627 \u063a\u0630\u0627\u0626\u064a\u064b\u0627 \u060c \u0644\u0643\u0646\u0647\u0645 \u0627\u0633\u062a\u0645\u0631\u0648\u0627 \u0641\u064a \u0625\u063a\u0631\u0627\u0626\u0647 \u0628\u0627\u0644\u0643\u0639\u0643",english:"Robert's colleagues knew he was on a diet, but they kept tempting him with cakes",french:"Les coll\u00e8gues de Robert savaient qu'il \u00e9tait au r\u00e9gime, mais ils n'arr\u00eataient pas de le tenter avec des g\u00e2teaux"},
+{arabic:"\u0643\u0644 \u0645\u0627 \u0643\u0627\u0646 \u0639\u0644\u064a\u0647 \u0641\u0639\u0644\u0647 \u0647\u0648",english:"All what he had to do was",french:"Tout ce qu'il avait \u00e0 faire c'\u00e9tait"},
+{arabic:"\u0623\u062d\u062a\u0627\u062c \u0625\u0644\u0649 \u0627\u0644\u0630\u0647\u0627\u0628 \u0625\u0644\u0649 \u0627\u0644\u0645\u062a\u062c\u0631 \u0644\u0634\u0631\u0627\u0621 \u0628\u0639\u0636 \u0627\u0644\u062d\u0644\u064a\u0628 - \u0647\u0644 \u0646\u062d\u062a\u0627\u062c \u0625\u0644\u0649 \u0623\u064a \u0634\u064a\u0621 \u0622\u062e\u0631\u061f",english:"I need to pop down to the store for some milk\u2014do we need anything else?",french:"Je dois descendre au magasin chercher du lait\u2014avons-nous besoin de quelque chose d'autre ?"},
+{arabic:"\u0644\u0642\u062f \u0627\u0646\u062a\u0642\u0644\u0646\u0627 \u0644\u0644\u062a\u0648 \u0625\u0644\u0649 \u0627\u0644\u0637\u0627\u0628\u0642 \u0627\u0644\u0633\u0641\u0644\u064a - \u064a\u062c\u0628 \u0623\u0646 \u062a\u0632\u0648\u0631\u0646\u0627 \u064a\u0648\u0645\u064b\u0627 \u0645\u0627!",english:"We just moved in on the floor below\u2014you should pop down sometime!",french:"Nous venons d'emm\u00e9nager \u00e0 l'\u00e9tage en dessous\u2014vous devriez passer un de ces jours !"},
+{arabic:"\u0643\u0646\u0627 \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u062c\u0632\u0621 \u0645\u0646 \u0627\u0644\u0645\u062f\u064a\u0646\u0629 \u060c \u0644\u0630\u0644\u0643 \u0641\u0643\u0631\u062a \u0623\u0646 \u0646\u0632\u0648\u0631\u0643\u0645.",english:"We were in this part of town, so I thought we'd pop down for a visit",french:"Nous \u00e9tions dans ce quartier, alors je me suis dit qu'on pourrait passer vous voir"},
+{arabic:"\u0641\u0643 \u0627\u0646\u0633\u062f\u0627\u062f \u0627\u0644\u0645\u0635\u0631\u0641",english:"Unclog the drain",french:"D\u00e9boucher le drain"},
+{arabic:"\u0644\u0642\u062f \u0644\u0648\u0651\u062b \u0642\u0645\u064a\u0635\u064a",english:"He stained my shirt",french:"Il a tach\u00e9 ma chemise"},
+{arabic:"\u0625\u0646\u062c\u0627\u0632",english:"Accomplishment",french:"Accomplissement"},
+{arabic:"\u0628\u0644\u0627\u062f \u0645\u0627 \u0628\u064a\u0646 \u0627\u0644\u0646\u0647\u0631\u064a\u0646 \u0643\u0627\u0646 \u0627\u0633\u0645 \u0645\u0646\u0637\u0642\u0629 \u0641\u064a \u0627\u0644\u0634\u0631\u0642 \u0627\u0644\u0623\u0648\u0633\u0637 \u062d\u064a\u062b \u0646\u0634\u0623\u062a \u0627\u0644\u062d\u0636\u0627\u0631\u0629 \u0627\u0644\u0628\u0634\u0631\u064a\u0629 \u0645\u0646\u0630 \u0622\u0644\u0627\u0641 \u0627\u0644\u0633\u0646\u064a\u0646.",english:"Mesopotamia was the name of a region in the Middle East, where human civilization arose thousands of years ago.",french:"La M\u00e9sopotamie \u00e9tait le nom d'une r\u00e9gion du Moyen-Orient, o\u00f9 la civilisation humaine a vu le jour il y a des milliers d'ann\u00e9es."},
+{arabic:"\u0631\u0628\u0645\u0627 \u0633\u0645\u0639\u062a \u0628\u0627\u0644\u0633\u0648\u0645\u0631\u064a\u064a\u0646\u060c \u0643\u0627\u0646\u0648\u0627 \u0623\u0642\u0648\u0649 \u0627\u0644\u0646\u0627\u0633 \u0647\u0646\u0627\u0643 \u0641\u064a\u0645\u0627 \u0623\u0635\u0628\u062d \u064a\u0639\u0631\u0641 \u0628\u0645\u0647\u062f \u0627\u0644\u062d\u0636\u0627\u0631\u0629.",english:"You may have heard of the Sumerians. They were the most powerful people there\u2014in what became known as the cradle of civilization.",french:"Vous avez peut-\u00eatre entendu parler des Sum\u00e9riens. Ils \u00e9taient les plus puissants de la r\u00e9gion, dans ce qu'on appelle le berceau de la civilisation."},
+{arabic:"\u0631\u0628\u0645\u0627 \u0643\u0627\u0646 \u0627\u0644\u0633\u0648\u0645\u0631\u064a\u0648\u0646 \u064a\u0639\u064a\u0634\u0648\u0646 \u0641\u064a \u0628\u064a\u0648\u062a \u0637\u064a\u0646\u064a\u0629\u060c \u0644\u0643\u0646\u0647\u0645 \u0643\u0627\u0646\u0648\u0627 \u0645\u062a\u0642\u062f\u0645\u064a\u0646 \u062c\u062f\u064b\u0627.",english:"The Sumerians may have lived in mud houses, but they were very sophisticated.",french:"Les Sum\u00e9riens vivaient peut-\u00eatre dans des maisons en terre, mais ils \u00e9taient tr\u00e8s sophistiqu\u00e9s."},
+{arabic:"\u0644\u0642\u062f \u0637\u0648\u0631\u0648\u0627 \u0623\u0648\u0644 \u0646\u0638\u0627\u0645 \u0643\u062a\u0627\u0628\u0629.",english:"They developed the first writing system.",french:"Ils ont d\u00e9velopp\u00e9 le premier syst\u00e8me d'\u00e9criture."},
+{arabic:"\u0647\u064a \u062a\u0636\u0639 \u0627\u0644\u0642\u0648\u0627\u0646\u064a\u0646 \u0647\u0646\u0627",english:"She lays down the laws around here",french:"C'est elle qui fait les lois ici"},
+{arabic:"\u0635\u0627\u062f\u0641\u062a \u0645\u0642\u0627\u0644\u0629 \u0645\u062b\u064a\u0631\u0629 \u0644\u0644\u0627\u0647\u062a\u0645\u0627\u0645 \u0641\u064a \u0627\u0644\u062c\u0631\u064a\u062f\u0629 \u0627\u0644\u064a\u0648\u0645",english:"I came across an interesting article in the newspaper today",french:"J'ai trouv\u00e9 un article int\u00e9ressant dans le journal aujourd'hui"},
+{arabic:"\u0627\u0644\u0628\u062d\u064a\u0631\u0629 \u062c\u0641\u062a",english:"Lake dried up",french:"Le lac s'est ass\u00e9ch\u00e9"},
+{arabic:"\u0636\u062d\u0643 \u062e\u0627\u0641\u062a",english:"Giggling",french:"Glousser"},
+{arabic:"\u0644\u0645 \u0623\u062a\u062d\u062f\u062b \u0645\u0639\u0647 \u0645\u0646\u0630 \u0633\u0646\u0648\u0627\u062a",english:"I haven't spoken to him in years",french:"Je ne lui ai pas parl\u00e9 depuis des ann\u00e9es"}];
+function createCard(d){
+  const card=document.createElement('div');card.className='flashcard';card.dataset.side=0;
+  const badge=document.createElement('span');badge.className='remembered-badge';badge.textContent='Remembered ✓';
+  card.appendChild(badge);
+  const content=document.createElement('div');content.className='content';card.appendChild(content);
+  function render(){content.textContent=[d.arabic,d.english,d.french][+card.dataset.side]}
+  render();
+  card.addEventListener('click',e=>{
+    if(!e.target.closest('button')){
+      card.dataset.side=(+card.dataset.side+1)%3;render();
+    }
+  });
+  const btns=document.createElement('div');btns.className='buttons';
+  let rem=false;
+  const rb=document.createElement('button');
+  rb.className='remember-button';rb.textContent='Mark as Remembered';
+  rb.addEventListener('click',e=>{
+    e.stopPropagation();rem=!rem;
+    card.classList.toggle('remembered',rem);
+    rb.classList.toggle('remembered',rem);
+    rb.textContent=rem?'Unmark Remembered':'Mark as Remembered';
+  });
+  btns.appendChild(rb);
+  const pb=document.createElement('button');
+  pb.className='play-button';pb.textContent='🔊';pb.setAttribute('aria-label','Play');
+  pb.addEventListener('click',e=>{
+    e.stopPropagation();
+    const txt=content.textContent;
+    const lang=['ar','en','fr'][+card.dataset.side];
+    const u=new SpeechSynthesisUtterance(txt);
+    u.lang=lang;speechSynthesis.speak(u);
+  });
+  btns.appendChild(pb);
+  card.appendChild(btns);
+  return card;
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  const c=document.getElementById('card-container');
+  cards.forEach(d=>c.appendChild(createCard(d)));
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+});
+</script>
+</body></html>
