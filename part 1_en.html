@@ -38,16 +38,43 @@ h1{text-align:center;margin-bottom:1rem;font-size:1.8rem}
 .modal-content input[type="range"]{width:100%}
 .modal-content .close{float:right;font-size:1.2rem;cursor:pointer}
 .lang-settings{padding:1rem 0;margin-bottom:1.5rem;min-height:180px}
-#settings-button,#flip-all-button{position:fixed;bottom:1rem;
-  z-index:1001;background:#fff;border:none;border-radius:50%;
-  padding:.5rem;font-size:1.5rem;cursor:pointer;
-  box-shadow:0 2px 6px rgba(0,0,0,.2)}
-#settings-button{right:1rem}#flip-all-button{right:4rem}
-#return-button{position:fixed;bottom:1rem;left:30%;
-  transform:translateX(-50%);background:#1976d2;color:#fff;
-  border:none;border-radius:20px;padding:.75rem 1.5rem;
-  font-size:1rem;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2);
-  z-index:1001}
+
+/* --- Enlarged Floating Buttons --- */
+#settings-button,
+#flip-all-button {
+  position: fixed;
+  bottom: 1rem;
+  z-index: 1001;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 4rem;        /* ~64px */
+  height: 4rem;       /* ~64px */
+  padding: 0;
+  font-size: 2.5rem;  /* larger icon */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+#flip-all-button { right: 6rem; }
+#settings-button  { right: 1rem; }
+
+/* --- Return Button — bottom-left, larger --- */
+#return-button{
+  position:fixed;
+  bottom:1rem;
+  left:1rem;
+  background:#1976d2;
+  color:#fff;
+  border:none;
+  border-radius:20px;
+  padding:1rem 2rem;
+  font-size:1.2rem;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,0.2);
+}
 </style>
 </head><body>
 <h1>Flashcards</h1>
@@ -129,7 +156,6 @@ function populateVoiceSelects(){
   });
 }
 speechSynthesis.onvoiceschanged=populateVoiceSelects;
-// Modal controls
 const modal=document.getElementById('settings-modal');
 document.getElementById('settings-button').onclick=()=>{ populateVoiceSelects(); modal.style.display='flex'; };
 modal.querySelector('.close').onclick=()=>{ modal.style.display='none'; localStorage.setItem('flashcardVoiceSettings',JSON.stringify(voiceSettings)); };
@@ -143,7 +169,6 @@ document.querySelectorAll('.lang-settings').forEach(cfg=>{
   pitch.oninput=e=>{pv.textContent=e.target.value;voiceSettings[lang].pitch=+e.target.value;};
   pitch.value=voiceSettings[lang].pitch; pv.textContent=pitch.value;
 });
-// Card builder
 function createCard(d,i){
   const card=document.createElement('div'); card.className='flashcard'; card.dataset.side=0;
   const badge=document.createElement('span'); badge.className='remembered-badge'; badge.textContent='Remembered ✓';
@@ -170,20 +195,15 @@ function createCard(d,i){
   card.append(btns);
   return card;
 }
-// Flip-all
 document.getElementById('flip-all-button').onclick=()=>{
   document.querySelectorAll('.flashcard').forEach((c,i)=>{
-    c.dataset.side=0; c.querySelector('.content').textContent = cards[i].arabic;
+    c.dataset.side=0; c.querySelector('.content').textContent=cards[i].arabic;
   });
 };
-// Init
 window.addEventListener('DOMContentLoaded',()=>{
   const cont=document.getElementById('card-container');
   cards.forEach((c,i)=>cont.append(createCard(c,i)));
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 });
 </script>
-<p style="margin:20px 0;">
-  <a href="index_en.html">← Back to English index</a>
-</p>
 </body></html>
