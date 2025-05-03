@@ -6,106 +6,168 @@
         content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
   <title>Nederlands Pages</title>
   <style>
-    :root{
+    :root {
       --primary:#1976d2; --background:#f4f4f9; --tile-bg:#fff;
       --tile-radius:12px; --tile-shadow:0 2px 8px rgba(0,0,0,.1);
       --gap:16px; --font:"Arial",sans-serif; --done-filter:grayscale(100%) opacity(.6);
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:var(--font);
-      background:var(--background);
-      min-height:100vh;
-      display:flex;flex-direction:column;align-items:center;
-      padding:var(--gap);
-    }
-    h1{
-      color:#333;text-align:center;
-      margin-bottom:var(--gap);
-      font-size:1.8rem;
-    }
-    .grid{
-      display:grid;
-      width:100%; max-width:640px;
-      gap:var(--gap);
-      grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
-    }
-    .grid a{
-      position:relative;
-      display:flex;align-items:center;justify-content:center;
-      background:var(--tile-bg);
-      border-radius:var(--tile-radius);
-      box-shadow:var(--tile-shadow);
-      text-decoration:none;
-      color:var(--primary);
-      font-size:1rem;
-      padding:var(--gap);
-      aspect-ratio:1/1;
-      transition:background .2s,color .2s,transform .1s;
-      text-align:center;
-      user-select:none;touch-action:manipulation;
-    }
-    .grid a:hover  { background:var(--primary); color:#fff }
-    .grid a:active { transform:scale(.97) }
-    .grid a.done   { filter:var(--done-filter) }
-    .grid a.done::after{
-      content:"✔";
-      position:absolute; top:8px; right:8px;
-      font-size:1.2em; color:var(--primary);
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    /* ── 10-rem sticky Return button ─────────────────────────────────── */
-    #return-button{
-      position:fixed;
-      top:37%;                       /* ← centre of button 25 % down */
-      transform:translateY(-50%);
-      left:calc(env(safe-area-inset-left,0) + 1rem);
-
-      width:10rem; height:10rem; font-size:4rem;
-      display:flex; align-items:center; justify-content:center;
-      text-decoration:none; border:none; border-radius:50%;
-      background:var(--primary); color:#fff;
-      box-shadow:0 3px 8px rgba(0,0,0,.25);
-      z-index:1002;
-      touch-action:manipulation; cursor:pointer;
+    body {
+      font-family: var(--font);
+      background: var(--background);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--gap);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
-    @media(max-width:400px){
-      #return-button{ width:7rem; height:7rem; font-size:3rem }
-      h1{ font-size:1.4rem }
-      .grid a{ font-size:.9rem; padding:calc(var(--gap)/2) }
+
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: var(--gap);
+      font-size: 1.8rem;
+    }
+
+    .scroll-buffer {
+      width: 100%;
+      height: 150px;
+      flex-shrink: 0;
+    }
+
+    .grid {
+      display: grid;
+      width: 100%;
+      max-width: 640px;
+      gap: var(--gap);
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .grid a {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--tile-bg);
+      border-radius: var(--tile-radius);
+      box-shadow: var(--tile-shadow);
+      text-decoration: none;
+      color: var(--primary);
+      font-size: 1rem;
+      padding: var(--gap);
+      aspect-ratio: 1/1;
+      transition: background 0.2s, color 0.2s, transform 0.1s;
+      text-align: center;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .grid a:nth-child(4n) {
+      margin-bottom: 5rem;
+    }
+
+    .grid a.done {
+      filter: var(--done-filter);
+    }
+
+    .done-toggle {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 1.2rem;
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      z-index: 10;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .grid a.done .done-toggle {
+      opacity: 0.5;
+    }
+
+    .grid a:hover  { background: var(--primary); color: #fff }
+    .grid a:active { transform: scale(.97) }
+
+    #return-button {
+      position: fixed;
+      top: 37%;
+      transform: translateY(-50%);
+      left: calc(env(safe-area-inset-left, 0) + 1rem);
+      width: 10rem;
+      height: 10rem;
+      font-size: 4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      border: none;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 3px 8px rgba(0,0,0,.25);
+      z-index: 1002;
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+
+    @media(max-width:400px) {
+      #return-button { width: 7rem; height: 7rem; font-size: 3rem }
+      h1 { font-size: 1.4rem }
+      .grid a { font-size: .9rem; padding: calc(var(--gap) / 2) }
     }
   </style>
 </head>
 <body>
   <h1>Nederlands Pages</h1>
 
+  <div class="scroll-buffer"></div>
+
   <nav class="grid">
-    
+    <a href="part1_nl.html">Part1</a>
+    <a href="part2_nl.html">Part2</a>
+    <a href="part3_nl.html">Part3</a>
+    <a href="part4_nl.html">Part4</a>
   </nav>
+
+  <div class="scroll-buffer"></div>
 
   <a id="return-button" href="index.html" title="Back">←</a>
 
   <script>
-    /* Long-press (800 ms) toggles “done” state */
-    document.addEventListener('DOMContentLoaded',()=>{
-      const HOLD = 800;
-      document.querySelectorAll('.grid a').forEach(tile=>{
-        let timer=null, href=tile.getAttribute('href');
-        if(localStorage.getItem('done_'+href)==='true')
-            tile.classList.add('done');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.grid a').forEach(tile => {
+        const href = tile.getAttribute('href');
 
-        const start=()=>timer=setTimeout(()=>{
-            tile.classList.toggle('done');
-            localStorage.setItem('done_'+href,
-                                 tile.classList.contains('done'));
-        },HOLD);
-        const cancel=()=>clearTimeout(timer);
+        // Create and add the ✔ button
+        const doneBtn = document.createElement('button');
+        doneBtn.innerHTML = '✔';
+        doneBtn.className = 'done-toggle';
+        tile.appendChild(doneBtn);
 
-        tile.addEventListener('mousedown',start);
-        tile.addEventListener('touchstart',start);
-        tile.addEventListener('mouseup',cancel);
-        tile.addEventListener('mouseleave',cancel);
-        tile.addEventListener('touchend',cancel);
+        // Restore saved state
+        if (localStorage.getItem('done_' + href) === 'true') {
+          tile.classList.add('done');
+        }
+
+        // Toggle on click
+        doneBtn.addEventListener('click', (e) => {
+          e.preventDefault(); // Prevent tile navigation
+          tile.classList.toggle('done');
+          localStorage.setItem('done_' + href, tile.classList.contains('done'));
+        });
       });
     });
   </script>
