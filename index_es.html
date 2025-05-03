@@ -6,39 +6,33 @@
         content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
   <title>Español Pages</title>
   <style>
-    :root {
-      --primary:      #1976d2;
-      --background:   #f4f4f9;
-      --tile-bg:      #ffffff;
-      --tile-radius:  12px;
-      --tile-shadow:  0 2px 8px rgba(0,0,0,.1);
-      --gap:          16px;
-      --font:         "Arial", sans-serif;
-      --done-filter:  grayscale(100%) opacity(.6);
+    :root{
+      --primary:#1976d2; --background:#f4f4f9; --tile-bg:#fff;
+      --tile-radius:12px; --tile-shadow:0 2px 8px rgba(0,0,0,.1);
+      --gap:16px; --font:"Arial",sans-serif; --done-filter:grayscale(100%) opacity(.6);
     }
-    * { box-sizing:border-box; margin:0; padding:0 }
-    body {
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
       font-family:var(--font);
       background:var(--background);
       min-height:100vh;
-      display:flex; flex-direction:column; align-items:center;
+      display:flex;flex-direction:column;align-items:center;
       padding:var(--gap);
     }
-    h1 {
-      color:#333;
-      text-align:center;
+    h1{
+      color:#333;text-align:center;
       margin-bottom:var(--gap);
       font-size:1.8rem;
     }
-    .grid {
+    .grid{
       display:grid;
       width:100%; max-width:640px;
       gap:var(--gap);
       grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
     }
-    .grid a {
+    .grid a{
       position:relative;
-      display:flex; align-items:center; justify-content:center;
+      display:flex;align-items:center;justify-content:center;
       background:var(--tile-bg);
       border-radius:var(--tile-radius);
       box-shadow:var(--tile-shadow);
@@ -49,30 +43,31 @@
       aspect-ratio:1/1;
       transition:background .2s,color .2s,transform .1s;
       text-align:center;
-      user-select:none; touch-action:manipulation;
+      user-select:none;touch-action:manipulation;
     }
     .grid a:hover  { background:var(--primary); color:#fff }
     .grid a:active { transform:scale(.97) }
     .grid a.done   { filter:var(--done-filter) }
-    .grid a.done::after {
-       content:"✔";
-       position:absolute; top:8px; right:8px;
-       font-size:1.2em; color:var(--primary);
+    .grid a.done::after{
+      content:"✔";
+      position:absolute; top:8px; right:8px;
+      font-size:1.2em; color:var(--primary);
     }
 
-    /* ---------- 10-rem sticky Return button ---------- */
+    /* ── 10-rem sticky Return button ─────────────────────────────────── */
     #return-button{
       position:fixed;
-      bottom:calc(env(safe-area-inset-bottom,0) + 1rem);
-      left:  calc(env(safe-area-inset-left ,0) + 1rem);
+      top:25%;                       /* ← centre of button 25 % down */
+      transform:translateY(-50%);
+      left:calc(env(safe-area-inset-left,0) + 1rem);
+
       width:10rem; height:10rem; font-size:4rem;
-      border:none; border-radius:50%;
       display:flex; align-items:center; justify-content:center;
+      text-decoration:none; border:none; border-radius:50%;
       background:var(--primary); color:#fff;
       box-shadow:0 3px 8px rgba(0,0,0,.25);
       z-index:1002;
       touch-action:manipulation; cursor:pointer;
-      text-decoration:none;
     }
     @media(max-width:400px){
       #return-button{ width:7rem; height:7rem; font-size:3rem }
@@ -88,31 +83,31 @@
     
   </nav>
 
-  <a id="return-button" href="index.html" title="Back">←</a>   <!-- sticky “←” lives outside the grid -->
+  <a id="return-button" href="index.html" title="Back">←</a>
 
   <script>
-  // Long-press (800 ms) toggles “done” state and stores it in localStorage
-  document.addEventListener('DOMContentLoaded',()=>{
-    const THRESHOLD = 800;
-    document.querySelectorAll('.grid a').forEach(tile=>{
-      let timer=null, href = tile.getAttribute('href');
-      if(localStorage.getItem('done_'+href)==='true')
-          tile.classList.add('done');
+    /* Long-press (800 ms) toggles “done” state */
+    document.addEventListener('DOMContentLoaded',()=>{
+      const HOLD = 800;
+      document.querySelectorAll('.grid a').forEach(tile=>{
+        let timer=null, href=tile.getAttribute('href');
+        if(localStorage.getItem('done_'+href)==='true')
+            tile.classList.add('done');
 
-      const start = ()=> timer = setTimeout(()=>{
-          tile.classList.toggle('done');
-          localStorage.setItem('done_'+href,
-                               tile.classList.contains('done'));
-      }, THRESHOLD);
-      const cancel = ()=> clearTimeout(timer);
+        const start=()=>timer=setTimeout(()=>{
+            tile.classList.toggle('done');
+            localStorage.setItem('done_'+href,
+                                 tile.classList.contains('done'));
+        },HOLD);
+        const cancel=()=>clearTimeout(timer);
 
-      tile.addEventListener('mousedown',start);
-      tile.addEventListener('touchstart',start);
-      tile.addEventListener('mouseup',cancel);
-      tile.addEventListener('mouseleave',cancel);
-      tile.addEventListener('touchend',cancel);
+        tile.addEventListener('mousedown',start);
+        tile.addEventListener('touchstart',start);
+        tile.addEventListener('mouseup',cancel);
+        tile.addEventListener('mouseleave',cancel);
+        tile.addEventListener('touchend',cancel);
+      });
     });
-  });
   </script>
 </body>
 </html>
