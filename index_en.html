@@ -26,8 +26,8 @@
       flex-direction: column;
       align-items: center;
       padding: var(--gap);
-      overflow-y: auto;                        /* Make scrollable */
-      -webkit-overflow-scrolling: touch;      /* Smooth on iOS */
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     h1 {
@@ -39,7 +39,7 @@
 
     .scroll-buffer {
       width: 100%;
-      height: 150px;  /* Touch-safe vertical scroll zone */
+      height: 150px;
       flex-shrink: 0;
     }
 
@@ -65,11 +65,16 @@
       color: var(--primary);
       font-size: 1rem;
       padding: var(--gap);
-      aspect-ratio: 1 / 1;
+      aspect-ratio: 1/1;
       transition: background 0.2s, color 0.2s, transform 0.1s;
       text-align: center;
       user-select: none;
       touch-action: manipulation;
+    }
+
+    /* ✔️ Extra space after every row of 4 items */
+    .grid a:nth-child(4n) {
+      margin-bottom: 2.5rem;
     }
 
     .grid a:hover  { background: var(--primary); color: #fff }
