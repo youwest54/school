@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#1976d2">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>Select Your Language</title>
@@ -60,7 +54,7 @@
       transition: background 0.2s, color 0.2s, transform 0.1s;
       text-align: center;
       user-select: none;
-      touch-action: manipulation;    /* allow normal taps */
+      touch-action: manipulation;
     }
     .grid a:hover {
       background: var(--primary);
@@ -80,18 +74,44 @@
       font-size: 1.2em;
       color: var(--primary);
     }
+
+    /* Enhanced “Back” button styling */
     .return {
       margin-top: var(--gap);
-      font-size: 0.9rem;
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      justify-content: center;
     }
     .return a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 200px;
+      aspect-ratio: 3/1;
+      background: var(--tile-bg);
       color: var(--primary);
       text-decoration: none;
+      border-radius: var(--tile-radius);
+      box-shadow: var(--tile-shadow);
+      padding: var(--gap);
+      transition: background 0.2s, color 0.2s, transform 0.1s;
+      user-select: none;
+      touch-action: manipulation;
     }
-    .return a:hover { text-decoration: underline; }
+    .return a:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .return a:active {
+      transform: scale(0.97);
+    }
+
     @media (max-width: 400px) {
       h1 { font-size: 1.4rem; }
       .grid a { font-size: 0.9rem; padding: calc(var(--gap) / 2); }
+      .return a { font-size: 0.9rem; padding: calc(var(--gap) / 2); }
     }
   </style>
 </head>
@@ -118,7 +138,6 @@
           tile.classList.add('done');
         }
         function startPress(e) {
-          // **no more preventDefault here** so taps still work
           timer = setTimeout(() => {
             tile.classList.toggle('done');
             localStorage.setItem('done_' + href, tile.classList.contains('done'));
@@ -136,12 +155,5 @@
       document.querySelectorAll('.grid a').forEach(initTile);
     });
   </script>
-<script>
-  if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>{
-      navigator.serviceWorker.register('./service-worker.js');
-    });
-  }
-</script>
 </body>
 </html>
