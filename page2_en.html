@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Flashcards with Voice Settings</title>
+  <title>Flashcards with Persistent Remembered State</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -13,6 +13,7 @@
       max-width: 600px;
       margin: 0 auto;
       padding: 1rem;
+      padding-bottom: 4rem; /* space for the return button */
     }
     h1 {
       text-align: center;
@@ -25,11 +26,11 @@
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 12px;
-      padding: 1.5rem;        /* extra padding */
-      margin-bottom: 1.5rem;  /* more space between cards */
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
       position: relative;
       touch-action: manipulation;
-      min-height: 200px;      /* make each card taller */
+      min-height: 200px;
     }
     .flashcard.remembered { border-color: #43a047; }
     .remembered-badge {
@@ -42,12 +43,10 @@
       font-size: 0.75rem;
       display: none;
     }
-    .flashcard.remembered .remembered-badge {
-      display: block;
-    }
+    .flashcard.remembered .remembered-badge { display: block; }
     .content {
       font-size: 1.5rem;
-      min-height: 7em;        /* larger text area */
+      min-height: 3em;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -68,9 +67,7 @@
       cursor: pointer;
     }
     .remember-button { background: #eee; color: #333; }
-    .remember-button.remembered {
-      background: #43a047; color: #fff;
-    }
+    .remember-button.remembered { background: #43a047; color: #fff; }
     .play-button {
       background: none;
       font-size: 1.2rem;
@@ -112,15 +109,13 @@
       font-size: 1.2rem;
       cursor: pointer;
     }
-
-    /* Taller language blocks */
     .lang-settings {
       padding: 1rem 0;
       margin-bottom: 1.5rem;
       min-height: 180px;
     }
 
-    /* Pin buttons bottom-right */
+    /* Pin settings & flip-all to bottom-right */
     #settings-button,
     #flip-all-button {
       position: fixed;
@@ -136,14 +131,30 @@
     }
     #settings-button { right: 1rem; }
     #flip-all-button { right: 4rem; }
+
+    /* Return button at bottom center */
+    #return-button {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      z-index: 1001;
+    }
   </style>
 </head>
 <body>
   <h1>Flashcards</h1>
 
-  <!-- Flip All to Arabic -->
+  <!-- Flip-all and Settings -->
   <button id="flip-all-button" title="Flip all cards to Arabic">🔄</button>
-  <!-- Settings -->
   <button id="settings-button" title="Settings">⚙️</button>
 
   <div id="card-container"></div>
@@ -153,7 +164,6 @@
     <div class="modal-content">
       <span class="close" title="Close">×</span>
       <h2>Voice Settings</h2>
-
       <!-- Arabic -->
       <div class="lang-settings" data-lang="ar">
         <label>Arabic Voice:</label>
@@ -186,8 +196,13 @@
     </div>
   </div>
 
+  <!-- Return to main page -->
+  <button id="return-button" onclick="window.location.href='index.html'">
+    ← Return to Main Page
+  </button>
+
   <script>
-    // Full cards array
+    // 1) Data
     const cards = [
       { arabic: "دقيق", english: "Accurate", french: "Précis" },
       { arabic: "ضالم أو مظلوم", english: "Oppressor or oppressed", french: "Oppresseur ou opprimé" },
@@ -205,31 +220,42 @@
       { arabic: "جرح", english: "Wound", french: "Blessure" }
     ];
 
-    // Voice settings persistence
-    const voiceSettings = { ar:{voiceURI:null,rate:1,pitch:1}, en:{voiceURI:null,rate:1,pitch:1}, fr:{voiceURI:null,rate:1,pitch:1} };
-    const saved = localStorage.getItem('flashcardVoiceSettings');
-    if (saved) Object.assign(voiceSettings, JSON.parse(saved));
+    // 2) Remembered state persistence
+    let rememberedStates = {};
+    try {
+      rememberedStates = JSON.parse(localStorage.getItem('flashcardRemembered')) || {};
+    } catch {}
+    function saveRemembered() {
+      localStorage.setItem('flashcardRemembered', JSON.stringify(rememberedStates));
+    }
 
-    // Populate voice selects
+    // 3) Voice settings persistence
+    const voiceSettings = {
+      ar:{voiceURI:null,rate:1,pitch:1},
+      en:{voiceURI:null,rate:1,pitch:1},
+      fr:{voiceURI:null,rate:1,pitch:1}
+    };
+    const savedVoices = localStorage.getItem('flashcardVoiceSettings');
+    if (savedVoices) Object.assign(voiceSettings, JSON.parse(savedVoices));
+
     function populateVoiceSelects() {
       const voices = speechSynthesis.getVoices();
       document.querySelectorAll('.lang-settings').forEach(cfg => {
         const lang = cfg.dataset.lang;
         const sel = cfg.querySelector('.voice-select');
         sel.innerHTML = '';
-        voices.filter(v => v.lang.startsWith(lang))
-              .forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.voiceURI;
-                opt.textContent = `${v.name} (${v.lang})`;
-                sel.append(opt);
-              });
+        voices.filter(v => v.lang.startsWith(lang)).forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.voiceURI;
+          opt.textContent = `${v.name} (${v.lang})`;
+          sel.append(opt);
+        });
         if (voiceSettings[lang].voiceURI) sel.value = voiceSettings[lang].voiceURI;
       });
     }
     speechSynthesis.onvoiceschanged = populateVoiceSelects;
 
-    // Modal open/close
+    // 4) Modal controls
     const modal = document.getElementById('settings-modal');
     document.getElementById('settings-button').onclick = () => {
       populateVoiceSelects();
@@ -239,52 +265,39 @@
       modal.style.display = 'none';
       localStorage.setItem('flashcardVoiceSettings', JSON.stringify(voiceSettings));
     };
-
-    // Wire up controls
-    modal.querySelectorAll('.lang-settings').forEach(cfg => {
+    document.querySelectorAll('.lang-settings').forEach(cfg => {
       const lang = cfg.dataset.lang;
-      cfg.querySelector('.voice-select').onchange = e => {
-        voiceSettings[lang].voiceURI = e.target.value;
-      };
-      const rate = cfg.querySelector('.rate-range');
-      const rateVal = cfg.querySelector('.rate-value');
-      rate.oninput = e => {
-        rateVal.textContent = e.target.value;
-        voiceSettings[lang].rate = +e.target.value;
-      };
-      rate.value = voiceSettings[lang].rate;
-      rateVal.textContent = rate.value;
-
-      const pitch = cfg.querySelector('.pitch-range');
-      const pitchVal = cfg.querySelector('.pitch-value');
-      pitch.oninput = e => {
-        pitchVal.textContent = e.target.value;
-        voiceSettings[lang].pitch = +e.target.value;
-      };
-      pitch.value = voiceSettings[lang].pitch;
-      pitchVal.textContent = pitch.value;
+      cfg.querySelector('.voice-select').onchange = e => voiceSettings[lang].voiceURI = e.target.value;
+      const rate = cfg.querySelector('.rate-range'), rv = cfg.querySelector('.rate-value');
+      rate.oninput = e => { rv.textContent = e.target.value; voiceSettings[lang].rate = +e.target.value; };
+      rate.value = voiceSettings[lang].rate; rv.textContent = rate.value;
+      const pitch = cfg.querySelector('.pitch-range'), pv = cfg.querySelector('.pitch-value');
+      pitch.oninput = e => { pv.textContent = e.target.value; voiceSettings[lang].pitch = +e.target.value; };
+      pitch.value = voiceSettings[lang].pitch; pv.textContent = pitch.value;
     });
 
-    // Create a card
-    function createCard(data) {
+    // 5) Build cards
+    function createCard(data, idx) {
       const card = document.createElement('div');
       card.className = 'flashcard';
       card.dataset.side = 0;
 
+      // badge
       const badge = document.createElement('span');
       badge.className = 'remembered-badge';
       badge.textContent = 'Remembered ✓';
       card.append(badge);
 
+      // content
       const content = document.createElement('div');
       content.className = 'content';
       card.append(content);
-
-      function render() {
+      const render = () => {
         content.textContent = [data.arabic, data.english, data.french][+card.dataset.side];
-      }
+      };
       render();
 
+      // flip
       card.onclick = e => {
         if (!e.target.closest('button')) {
           card.dataset.side = (+card.dataset.side + 1) % 3;
@@ -292,19 +305,27 @@
         }
       };
 
+      // buttons
       const btns = document.createElement('div');
       btns.className = 'buttons';
 
+      // remember toggle
       const remBtn = document.createElement('button');
       remBtn.className = 'remember-button';
-      remBtn.textContent = 'Mark as Remembered';
+      const applyR = state => {
+        card.classList.toggle('remembered', state);
+        remBtn.classList.toggle('remembered', state);
+        remBtn.textContent = state ? 'Unmark Remembered' : 'Mark as Remembered';
+      };
+      applyR(!!rememberedStates[idx]);
       remBtn.onclick = () => {
-        const remembered = card.classList.toggle('remembered');
-        remBtn.classList.toggle('remembered', remembered);
-        remBtn.textContent = remembered ? 'Unmark Remembered' : 'Mark as Remembered';
+        rememberedStates[idx] = !rememberedStates[idx];
+        applyR(rememberedStates[idx]);
+        saveRemembered();
       };
       btns.append(remBtn);
 
+      // play TTS
       const playBtn = document.createElement('button');
       playBtn.className = 'play-button';
       playBtn.textContent = '🔊';
@@ -316,8 +337,7 @@
         const s = voiceSettings[lang];
         if (s.voiceURI) utt.voice = speechSynthesis.getVoices().find(v => v.voiceURI === s.voiceURI);
         else utt.lang = lang;
-        utt.rate = s.rate;
-        utt.pitch = s.pitch;
+        utt.rate = s.rate; utt.pitch = s.pitch;
         speechSynthesis.speak(utt);
       };
       btns.append(playBtn);
@@ -326,22 +346,23 @@
       return card;
     }
 
-    // Flip all to Arabic
+    // 6) Flip-all
     document.getElementById('flip-all-button').onclick = () => {
-      document.querySelectorAll('.flashcard').forEach(card => {
-        card.dataset.side = 0;
-        card.querySelector('.content').textContent = card.querySelector('.content').textContent = card.__data__.arabic;
+      document.querySelectorAll('.flashcard').forEach(c => {
+        c.dataset.side = 0;
+        c.querySelector('.content').textContent = c.__data__.arabic;
       });
     };
 
-    // Render on DOMContentLoaded
+    // 7) Init
     window.addEventListener('DOMContentLoaded', () => {
       const container = document.getElementById('card-container');
-      cards.forEach(c => {
-        const el = createCard(c);
-        el.__data__ = c;  // store for flip-all
+      cards.forEach((c, i) => {
+        const el = createCard(c, i);
+        el.__data__ = c;
         container.append(el);
       });
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
     });
   </script>
 </body>
