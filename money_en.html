@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Expenses Manager</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #1976D2;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --border-radius: 12px;
+            --spacing: 1rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: var(--spacing);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .drag-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing);
+            margin-top: 2rem;
+        }
+
+        .drag-item {
+            background: var(--card-color);
+            padding: var(--spacing);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: move;
+            user-select: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            touch-action: pan-y pinch-zoom;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drag-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .drag-item.dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+        }
+
+        .drag-item.selected {
+            border: 2px solid var(--primary-color);
+        }
+
+        .drag-item .action-buttons {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            background: var(--card-color);
+            padding: 0 1rem;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .drag-item.swiped .action-buttons {
+            transform: translateX(0);
+        }
+
+        .drag-item .action-button {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            margin: 0 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .drag-item .action-button:active {
+            transform: scale(0.95);
+        }
+
+        .drag-item .edit-button {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .drag-item .delete-button {
+            background: #ff4444;
+            color: white;
+        }
+
+        .drag-item .checkbox-label {
+            display: flex;
+            align-items: center;
+            padding-right: 100px;
+        }
+
+        .drag-item .checkbox-label input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 0.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: 2px solid var(--primary-color);
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .drag-item .checkbox-label input[type="checkbox"]:checked {
+            background-color: var(--primary-color);
+        }
+
+        .drag-item .checkbox-label input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 16px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .drag-item .expense-details {
+            padding-right: 100px;
+        }
+
+        .drag-item .expense-category {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: #e3f2fd;
+            color: var(--secondary-color);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .summary-panel {
+            background: var(--card-color);
+            padding: var(--spacing);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-panel h2 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 4px;
+        }
+
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .add-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .add-button:hover {
+            transform: scale(1.1);
+        }
+
+        .expense-form {
+            background: var(--card-color);
+            padding: var(--spacing);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            margin-bottom: 0;
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            transform: translateY(100%);
+            z-index: 1000;
+            width: 100%;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .expense-form.visible {
+            display: block;
+            transform: translateY(0);
+        }
+
+        .expense-form .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .expense-form .form-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .expense-form .close-form {
+            position: static;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .expense-form .close-form:active {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .expense-form .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .expense-form .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .expense-form input,
+        .expense-form select {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .expense-form select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5rem;
+            padding-right: 3rem;
+        }
+
+        .expense-form .submit-button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .expense-form .submit-button:active {
+            transform: scale(0.98);
+            background: var(--secondary-color);
+        }
+
+        .quick-edit-button {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .drag-item:hover .quick-edit-button {
+            opacity: 1;
+        }
+
+        .drag-item .quick-edit-button:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        @media (max-width: 768px) {
+            .quick-edit-button {
+                opacity: 1;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background-color: #1a1a1a;
+                --card-color: #2d2d2d;
+                --text-color: #ffffff;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            .drag-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .trash-bin {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            width: 80px;
+            height: 80px;
+            background: #ff4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .trash-bin.visible {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .trash-bin.drag-over {
+            transform: translateX(-50%) scale(1.1);
+            background: #ff0000;
+        }
+
+        .drag-item.dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+            z-index: 1001;
+        }
+
+        .drag-item.dragging-to-trash {
+            background: #ffebee;
+            border: 2px dashed #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Expenses Manager</h1>
+            <p>Drag to reorder expenses</p>
+        </div>
+
+        <div class="summary-panel">
+            <h2>Expense Summary</h2>
+            <div id="categorySummary"></div>
+            <div class="total-amount" id="totalAmount"></div>
+        </div>
+
+        <div class="overlay" id="overlay"></div>
+        <div class="expense-form" id="expenseForm">
+            <button class="close-form" onclick="toggleExpenseForm(false)">×</button>
+            <input type="text" id="expenseName" placeholder="Expense Name">
+            <input type="number" id="expenseAmount" placeholder="Amount">
+            <select id="expenseCategory">
+                <option value="General">General</option>
+                <option value="Entertainment">Entertainment</option>
+            </select>
+            <button onclick="addExpense()">Add Expense</button>
+        </div>
+        
+        <div class="drag-container" id="dragContainer">
+            <!-- Cards will be added here dynamically -->
+        </div>
+    </div>
+
+    <button class="calculate-button" onclick="calculateTotals()" title="Calculate Totals">💰</button>
+    <button class="add-button" id="addButton" title="Add Expense">+</button>
+
+    <div class="trash-bin" id="trashBin"></div>
+
+    <script>
+        let expensesData = {
+            salary: 2480.0,
+            expenses: {
+                "Free Mobile": {
+                    "amount": 20,
+                    "category": "General",
+                    "month": "2025-05"
+                },
+                "Frais Bancaire BNP": {
+                    "amount": 9.52,
+                    "category": "General",
+                    "month": "2025-05"
+                },
+                "Charge Maison": {
+                    "amount": 800,
+                    "category": "General",
+                    "month": "2025-05"
+                },
+                "Amazon Abonnement": {
+                    "amount": 5.99,
+                    "category": "Entertainment",
+                    "month": "2025-05"
+                },
+                "OpenAI Abonnement": {
+                    "amount": 22.99,
+                    "category": "Entertainment",
+                    "month": "2025-05"
+                },
+                "Free Bancaire Hollandis": {
+                    "amount": 6,
+                    "category": "General",
+                    "month": "2025-05"
+                },
+                "Car Tax": {
+                    "amount": 25.0,
+                    "category": "General",
+                    "month": "2025-05"
+                },
+                "Essence": {
+                    "amount": 70,
+                    "category": "General",
+                    "month": "2025-05"
+                },
+                "gym": {
+                    "amount": 26.98,
+                    "category": "Entertainment",
+                    "month": "2025-05"
+                },
+                "Car Assurance": {
+                    "amount": 45.17,
+                    "category": "General",
+                    "month": "2025-05"
+                },
+                "Fabto ASSURANCE": {
+                    "amount": 155.45,
+                    "category": "General",
+                    "month": "2025-05"
+                },
+                "free": {
+                    "amount": 0.0,
+                    "category": "General",
+                    "month": "2025-05"
+                },
+                "youtube": {
+                    "amount": 13.0,
+                    "category": "Entertainment",
+                    "month": "2025-05"
+                }
+            }
+        };
+
+        // Load data from localStorage on startup
+        function loadData() {
+            const savedData = localStorage.getItem('expensesData');
+            if (savedData) {
+                expensesData = JSON.parse(savedData);
+            }
+            renderExpenses();
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('expensesData', JSON.stringify(expensesData));
+        }
+
+        // Toggle expense form visibility
+        function toggleExpenseForm(show) {
+            const form = document.getElementById('expenseForm');
+            const overlay = document.getElementById('overlay');
+            if (show) {
+                form.classList.add('visible');
+                overlay.classList.add('visible');
+            } else {
+                form.classList.remove('visible');
+                overlay.classList.remove('visible');
+                // Clear form
+                document.getElementById('expenseName').value = '';
+                document.getElementById('expenseAmount').value = '';
+                document.getElementById('expenseCategory').value = 'General';
+                // Reset the form button
+                const submitButton = document.querySelector('.submit-button');
+                submitButton.textContent = 'Add Expense';
+                submitButton.onclick = addExpense;
+                document.querySelector('.form-title').textContent = 'Add Expense';
+            }
+        }
+
+        // Add new expense
+        function addExpense() {
+            const name = document.getElementById('expenseName').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const category = document.getElementById('expenseCategory').value;
+
+            if (name && !isNaN(amount)) {
+                expensesData.expenses[name] = {
+                    amount: amount,
+                    category: category,
+                    month: new Date().toISOString().slice(0, 7)
+                };
+                saveData();
+                renderExpenses();
+                toggleExpenseForm(false); // Hide form after adding
+                calculateTotals(); // Update totals
+            }
+        }
+
+        // Render all expenses as cards
+        function renderExpenses() {
+            const container = document.getElementById('dragContainer');
+            container.innerHTML = '';
+
+            Object.entries(expensesData.expenses).forEach(([name, data]) => {
+                const card = createExpenseCard(name, data);
+                container.appendChild(card);
+            });
+        }
+
+        // Create an expense card
+        function createExpenseCard(name, data) {
+            const card = document.createElement('div');
+            card.className = 'drag-item';
+            card.draggable = true;
+            card.dataset.name = name;
+            
+            card.innerHTML = `
+                <button class="quick-edit-button" onclick="editExpense('${name}')">✏️</button>
+                <div class="checkbox-label">
+                    <input type="checkbox" onchange="toggleExpenseSelection('${name}', this.checked)">
+                    <div>${name}</div>
+                </div>
+                <div class="expense-details">
+                    <strong>€${data.amount.toFixed(2)}</strong>
+                    <div class="expense-category">${data.category}</div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Edit an existing expense
+        function editExpense(name) {
+            const expense = expensesData.expenses[name];
+            if (!expense) return;
+
+            // Update form title
+            document.querySelector('.form-title').textContent = 'Edit Expense';
+
+            // Fill the form with existing data
+            document.getElementById('expenseName').value = name;
+            document.getElementById('expenseAmount').value = expense.amount;
+            document.getElementById('expenseCategory').value = expense.category;
+
+            // Show the form
+            toggleExpenseForm(true);
+
+            // Change the submit button to update
+            const submitButton = document.querySelector('.submit-button');
+            submitButton.textContent = 'Update Expense';
+            submitButton.onclick = () => updateExpense(name);
+        }
+
+        // Update an existing expense
+        function updateExpense(oldName) {
+            const newName = document.getElementById('expenseName').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const category = document.getElementById('expenseCategory').value;
+
+            if (newName && !isNaN(amount)) {
+                // Delete the old expense
+                delete expensesData.expenses[oldName];
+                
+                // Add the updated expense
+                expensesData.expenses[newName] = {
+                    amount: amount,
+                    category: category,
+                    month: new Date().toISOString().slice(0, 7)
+                };
+
+                saveData();
+                renderExpenses();
+                toggleExpenseForm(false);
+                calculateTotals();
+
+                // Reset the form button
+                const submitButton = document.querySelector('.submit-button');
+                submitButton.textContent = 'Add Expense';
+                submitButton.onclick = addExpense;
+            }
+        }
+
+        // Delete an expense
+        function deleteExpense(name) {
+            if (expensesData.expenses[name]) {
+                delete expensesData.expenses[name];
+                saveData();
+                renderExpenses();
+                calculateTotals();
+                hideDeleteConfirm();
+            }
+        }
+
+        // Show delete confirmation dialog
+        function confirmDelete(name) {
+            const confirmDialog = document.createElement('div');
+            confirmDialog.className = 'delete-confirm';
+            confirmDialog.innerHTML = `
+                <p>Delete "${name}"?</p>
+                <div>
+                    <button class="confirm-delete" onclick="deleteExpense('${name}')">Delete</button>
+                    <button class="cancel-delete" onclick="hideDeleteConfirm()">Cancel</button>
+                </div>
+            `;
+            document.body.appendChild(confirmDialog);
+            setTimeout(() => confirmDialog.classList.add('visible'), 0);
+
+            // Add overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay visible';
+            overlay.onclick = hideDeleteConfirm;
+            document.body.appendChild(overlay);
+        }
+
+        // Hide delete confirmation dialog
+        function hideDeleteConfirm() {
+            const confirmDialog = document.querySelector('.delete-confirm');
+            const overlay = document.querySelector('.overlay');
+            if (confirmDialog) {
+                confirmDialog.classList.remove('visible');
+                setTimeout(() => confirmDialog.remove(), 200);
+            }
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+
+        // Toggle expense selection
+        function toggleExpenseSelection(name, selected) {
+            const card = document.querySelector(`.drag-item[data-name="${name}"]`);
+            if (card) {
+                if (selected) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+                // Automatically calculate totals when selection changes
+                calculateSelectedTotals();
+            }
+        }
+
+        // Calculate totals and update summary
+        function calculateTotals() {
+            const categoryTotals = {};
+            let totalAmount = 0;
+
+            // Calculate totals by category
+            Object.values(expensesData.expenses).forEach(expense => {
+                const category = expense.category;
+                if (!categoryTotals[category]) {
+                    categoryTotals[category] = 0;
+                }
+                categoryTotals[category] += expense.amount;
+                totalAmount += expense.amount;
+            });
+
+            // Update summary display
+            const summaryHTML = Object.entries(categoryTotals)
+                .map(([category, amount]) => `
+                    <div class="summary-item">
+                        <span>${category}</span>
+                        <strong>€${amount.toFixed(2)}</strong>
+                    </div>
+                `).join('');
+
+            document.getElementById('categorySummary').innerHTML = summaryHTML;
+            document.getElementById('totalAmount').innerHTML = `
+                <div class="summary-item">
+                    <span>Total Expenses</span>
+                    <strong>€${totalAmount.toFixed(2)}</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Remaining (from salary)</span>
+                    <strong>€${(expensesData.salary - totalAmount).toFixed(2)}</strong>
+                </div>
+            `;
+        }
+
+        // Calculate totals for selected expenses
+        function calculateSelectedTotals() {
+            const selectedCards = document.querySelectorAll('.drag-item.selected');
+            const selectedExpenses = {};
+            let totalAmount = 0;
+            const categoryTotals = {};
+
+            selectedCards.forEach(card => {
+                const name = card.dataset.name;
+                const expense = expensesData.expenses[name];
+                if (expense) {
+                    selectedExpenses[name] = expense;
+                    totalAmount += expense.amount;
+                    
+                    // Calculate category totals
+                    if (!categoryTotals[expense.category]) {
+                        categoryTotals[expense.category] = 0;
+                    }
+                    categoryTotals[expense.category] += expense.amount;
+                }
+            });
+
+            // Update summary display
+            const summaryHTML = Object.entries(categoryTotals)
+                .map(([category, amount]) => `
+                    <div class="summary-item">
+                        <span>${category}</span>
+                        <strong>€${amount.toFixed(2)}</strong>
+                    </div>
+                `).join('');
+
+            document.getElementById('categorySummary').innerHTML = summaryHTML;
+            document.getElementById('totalAmount').innerHTML = `
+                <div class="summary-item">
+                    <span>Selected Expenses Total</span>
+                    <strong>€${totalAmount.toFixed(2)}</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Number of Selected Items</span>
+                    <strong>${selectedCards.length}</strong>
+                </div>
+            `;
+        }
+
+        // Toggle select all expenses
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.drag-item input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = !allChecked;
+                toggleExpenseSelection(checkbox.closest('.drag-item').dataset.name, !allChecked);
+            });
+        }
+
+        // Create trash bin element
+        function createTrashBin() {
+            const trashBin = document.createElement('div');
+            trashBin.className = 'trash-bin';
+            trashBin.innerHTML = '🗑️';
+            document.body.appendChild(trashBin);
+            return trashBin;
+        }
+
+        // Initialize trash bin
+        const trashBin = createTrashBin();
+
+        // Show trash bin when dragging starts
+        function showTrashBin() {
+            trashBin.classList.add('visible');
+        }
+
+        // Hide trash bin when dragging ends
+        function hideTrashBin() {
+            trashBin.classList.remove('visible');
+            trashBin.classList.remove('drag-over');
+        }
+
+        // Update the drag and drop functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const dragContainer = document.getElementById('dragContainer');
+            const addButton = document.getElementById('addButton');
+            let draggedItem = null;
+
+            // Load initial data
+            loadData();
+            calculateTotals();
+
+            // Drag and Drop functionality
+            dragContainer.addEventListener('dragstart', (e) => {
+                draggedItem = e.target;
+                e.target.classList.add('dragging');
+                showTrashBin();
+            });
+
+            dragContainer.addEventListener('dragend', (e) => {
+                e.target.classList.remove('dragging');
+                e.target.classList.remove('dragging-to-trash');
+                hideTrashBin();
+                saveData();
+            });
+
+            // Trash bin drag events
+            trashBin.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                trashBin.classList.add('drag-over');
+                if (draggedItem) {
+                    draggedItem.classList.add('dragging-to-trash');
+                }
+            });
+
+            trashBin.addEventListener('dragleave', () => {
+                trashBin.classList.remove('drag-over');
+                if (draggedItem) {
+                    draggedItem.classList.remove('dragging-to-trash');
+                }
+            });
+
+            trashBin.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (draggedItem) {
+                    const name = draggedItem.dataset.name;
+                    confirmDelete(name);
+                }
+                hideTrashBin();
+            });
+
+            // Touch events for mobile
+            dragContainer.addEventListener('touchstart', (e) => {
+                if (e.target.classList.contains('drag-item')) {
+                    draggedItem = e.target;
+                    e.target.classList.add('dragging');
+                    showTrashBin();
+                }
+            }, { passive: true });
+
+            dragContainer.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (draggedItem) {
+                    const touch = e.touches[0];
+                    const trashRect = trashBin.getBoundingClientRect();
+                    const isOverTrash = (
+                        touch.clientX >= trashRect.left &&
+                        touch.clientX <= trashRect.right &&
+                        touch.clientY >= trashRect.top &&
+                        touch.clientY <= trashRect.bottom
+                    );
+
+                    if (isOverTrash) {
+                        trashBin.classList.add('drag-over');
+                        draggedItem.classList.add('dragging-to-trash');
+                    } else {
+                        trashBin.classList.remove('drag-over');
+                        draggedItem.classList.remove('dragging-to-trash');
+                    }
+
+                    draggedItem.style.transform = `translate(${touch.clientX - draggedItem.offsetWidth/2}px, ${touch.clientY - draggedItem.offsetHeight/2}px)`;
+                }
+            }, { passive: false });
+
+            dragContainer.addEventListener('touchend', () => {
+                if (draggedItem) {
+                    const isOverTrash = draggedItem.classList.contains('dragging-to-trash');
+                    if (isOverTrash) {
+                        const name = draggedItem.dataset.name;
+                        confirmDelete(name);
+                    }
+                    draggedItem.classList.remove('dragging');
+                    draggedItem.classList.remove('dragging-to-trash');
+                    draggedItem.style.transform = '';
+                    draggedItem = null;
+                    hideTrashBin();
+                }
+            });
+
+            // Add new expense button
+            addButton.addEventListener('click', () => {
+                toggleExpenseForm(true);
+            });
+
+            // Close form when clicking overlay
+            document.getElementById('overlay').addEventListener('click', () => {
+                toggleExpenseForm(false);
+            });
+
+            function getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.drag-item:not(.dragging)')];
+
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
+            // Add select all button to the page
+            const selectAllButton = document.createElement('button');
+            selectAllButton.className = 'select-all-button';
+            selectAllButton.title = 'Select All';
+            selectAllButton.textContent = '✓';
+            selectAllButton.onclick = toggleSelectAll;
+            document.body.appendChild(selectAllButton);
+
+            // Update calculate button to handle selected items
+            const calculateButton = document.querySelector('.calculate-button');
+            calculateButton.onclick = () => {
+                const hasSelected = document.querySelectorAll('.drag-item.selected').length > 0;
+                if (hasSelected) {
+                    calculateSelectedTotals();
+                } else {
+                    calculateTotals();
+                }
+            };
+
+            // Close delete confirmation when clicking overlay
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('overlay')) {
+                    hideDeleteConfirm();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
