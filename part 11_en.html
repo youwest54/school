@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr"><head>
+<html lang="ar"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Flashcards</title>
@@ -105,16 +105,24 @@ body.scrolled #return-button{
 <!-- Settings modal -->
 <div id="settings-modal" class="modal"><div class="modal-content">
 <span class="close" title="Close">×</span><h2>Voice Settings</h2>
-<div class="lang-settings" data-lang="fr">
-  <label>French voice:</label>
+<div class="lang-settings" data-lang="ar">
+  <label>Arabic voice:</label>
   <select class="voice-select"></select>
   <label>Rate: <span class="rate-value">1</span></label>
   <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
   <label>Pitch: <span class="pitch-value">1</span></label>
   <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
 </div><hr>
-<div class="lang-settings" data-lang="nl">
-  <label>Dutch voice:</label>
+<div class="lang-settings" data-lang="en">
+  <label>English voice:</label>
+  <select class="voice-select"></select>
+  <label>Rate: <span class="rate-value">1</span></label>
+  <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
+  <label>Pitch: <span class="pitch-value">1</span></label>
+  <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
+</div><hr>
+<div class="lang-settings" data-lang="fr">
+  <label>French voice:</label>
   <select class="voice-select"></select>
   <label>Rate: <span class="rate-value">1</span></label>
   <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
@@ -125,8 +133,8 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script>
-const LANGS = ["fr", "nl"];
-const CARDS = [{"fr": "Peux-tu me dire combien tu as besoin ?", "nl": "Kun je me vertellen hoeveel je nodig hebt."}, {"fr": "Je suis parti à l'école.", "nl": "Ik ben naar school gegaan."}, {"fr": "Non, je ne suis pas parti à l'école.", "nl": "Nee, ik ben niet naar school gegaan."}, {"fr": "J'ai parlé avec lui.", "nl": "Ik heb met hem gesproken."}, {"fr": "Non, je n'ai pas parlé avec lui.", "nl": "Nee, ik heb niet met hem gesproken."}, {"fr": "J'ai bu du jus d'orange.", "nl": "Ik heb sinaasappelsap gedronken."}, {"fr": "Non, je n'ai pas bu de jus d'orange.", "nl": "Nee, ik heb geen sinaasappelsap gedronken."}, {"fr": "J'ai bu.", "nl": "Ik heb gedronken."}, {"fr": "Non, je n'ai pas bu.", "nl": "Nee, ik heb niet gedronken."}, {"fr": "J'ai mangé.", "nl": "Ik heb gegeten."}, {"fr": "Non, je n'ai pas mangé.", "nl": "Nee, ik heb niet gegeten."}, {"fr": "J'ai fait ça.", "nl": "Ik heb dat gedaan."}, {"fr": "Non, je n'ai pas fait ça.", "nl": "Nee, ik heb dat niet gedaan."}, {"fr": "J'ai fait.", "nl": "Ik heb gedaan."}, {"fr": "Je n'ai rien fait.", "nl": "Ik heb niets gedaan."}, {"fr": "J'ai mangé une pomme.", "nl": "Ik heb een appel gegeten."}, {"fr": "Non, je n'ai pas mangé de pomme.", "nl": "Nee, ik heb geen appel gegeten."}, {"fr": "J'ai décidé.", "nl": "Ik heb besloten."}, {"fr": "Je n'ai pas décidé.", "nl": "Ik heb niet besloten."}, {"fr": "Je n'ai pas encore décidé.", "nl": "Ik heb nog niet besloten."}, {"fr": "Ça c'est vrai.", "nl": "Dat is waar."}, {"fr": "Non, ça ce n'est pas vrai.", "nl": "Nee, dat is niet waar."}, {"fr": "Tu peux m'aider.", "nl": "Je kunt me helpen."}, {"fr": "Non, tu ne peux pas m'aider.", "nl": "Nee, je kunt me niet helpen."}, {"fr": "Je ne sais pas.", "nl": "Ik weet het niet."}, {"fr": "Non, tu ne m'aides pas.", "nl": "Nee, je helpt me niet."}, {"fr": "Tu m'as aidé.", "nl": "Je hebt me geholpen."}, {"fr": "Non, tu ne m'as pas aidé.", "nl": "Nee, je hebt me niet geholpen."}, {"fr": "J'ai fait beaucoup de choses.", "nl": "Ik heb veel dingen gedaan."}, {"fr": "Je n'ai rien fait.", "nl": "Ik heb niets gedaan."}, {"fr": "Je dois l'améliorer.", "nl": "Ik moet het verbeteren."}, {"fr": "Je sais.", "nl": "Ik weet het."}, {"fr": "Je ne sais pas.", "nl": "Ik weet het niet."}];
+const LANGS = ["ar", "en", "fr"];
+const CARDS = [{"ar": "أتحداك أن تملي عليّ كيف أعيش حياتي.", "en": "I defy you to dictate how I should live my life.", "fr": "Je te défie de me dicter comment je devrais vivre ma vie."}, {"ar": "طلب الدفاع عن شخص أو تدمير شخص", "en": "Ask to defend someone or crush someone", "fr": "Demander de défendre quelqu’un ou fracasser quelqu’un"}, {"ar": "مستهدف انتخابيًا", "en": "Electoral target", "fr": "Ciblé électoral"}, {"ar": "الشخص الذي يتفاخر بفضله على شخص آخر", "en": "One who boasts of his favours done to another", "fr": "Celui qui se vante des faveurs qu'il a rendues à un autre"}, {"ar": "معيب", "en": "Flawed", "fr": "Défaut"}, {"ar": "الدولة الأكثر تطورًا من حيث المنتجات التكنولوجية الزراعية", "en": "The most developed country in terms of agricultural technology products", "fr": "Le pays le plus développé au niveau des produits technologiques agricoles"}, {"ar": "نسبة كبيرة من سكان الهند يعتمدون على الزراعة والمزارع لكسب الدخل.", "en": "A large portion of the Indian population relies on agriculture and plantations for income.", "fr": "Une grosse partie de la population indienne s'appuie sur l'agriculture et les plantations pour son revenu."}, {"ar": "ثنائي", "en": "Bilateral", "fr": "Bilatéral"}, {"ar": "محام", "en": "Attorney", "fr": "Avocat"}, {"ar": "معين", "en": "Appointed", "fr": "Nommé"}, {"ar": "خطاب", "en": "Allocution", "fr": "Allocution"}, {"ar": "أنت مجرد شخص تافه", "en": "You’re just a lightweight", "fr": "Tu n’es qu’un poids léger / peu influent"}, {"ar": "التودد/سمسار", "en": "Courting / Broker", "fr": "Courtisage / Courtier"}, {"ar": "تجديف", "en": "Blasphemy", "fr": "Blasphème"}, {"ar": "الدبلجة", "en": "Dubbing", "fr": "Doublage"}, {"ar": "مصادر الجوانب المتفق عليها", "en": "Connot side sources", "fr": "Sources connues"}, {"ar": "الربا", "en": "Usury", "fr": "Usure"}, {"ar": "أحد أسباب دعم هذا البلد هو وجود مصلحة مادية.", "en": "One of the reasons why this country has a lot of support is because there’s a material interest.", "fr": "L'une des raisons pour lesquelles ce pays a beaucoup de soutien est qu'il y a un intérêt matériel."}, {"ar": "الاستثناءات التي تؤكد القاعدة", "en": "The exceptions that prove the rule.", "fr": "Les exceptions qui confirment la règle."}, {"ar": "يمكن استخدام التلاعب بالكلمات لإنشاء صورة أو انطباع معين في أذهان الجمهور.", "en": "Wordplay can be used to create a specific image or impression in the minds of the audience.", "fr": "Les jeux de mots peuvent être utilisés pour créer une image ou une impression particulière dans l'esprit du public."}, {"ar": "بدون وسائل التواصل الاجتماعي، لكان من الأسهل لهم إخفاء بعض الحقائق المتعلقة بالشرطة.", "en": "Without social media, it would have been easier for them to conceal certain truths related to the police.", "fr": "Sans les réseaux sociaux, il aurait été plus facile pour eux de dissimuler certaines vérités liées à la police."}, {"ar": "بالطبع: \"لقد جعلت وسائل التواصل الاجتماعي من الصعب على السلطات إخفاء بعض الحقائق التي حدثت مع الشرطة.\"", "en": "Of course: \"Social media has made it harder for the authorities to hide some truths that have occurred with police.\"", "fr": "Bien sûr : \"Les réseaux sociaux ont rendu plus difficile pour les autorités de cacher certaines vérités qui se sont produites avec la police.\""}, {"ar": "صحيح، مواقع التواصل الاجتماعي ساهمت في جعل الأمور أكثر شفافية وقد تجنبت السلطات إخفاء بعض الحقائق بفضل هذه الوسائل التقنية.", "en": "True, social media has contributed to making things more transparent, and the authorities avoided hiding some facts thanks to these technological tools.", "fr": "Correct, les réseaux sociaux ont aidé à rendre les choses plus transparentes, et les autorités ont évité de cacher certaines vérités grâce à ces moyens techniques."}, {"ar": "لماذا، في الإعلام الفرنسي، عندما يناقشون موضوعًا أجنبيًا، يستضيفون فقط محللين فرنسيين؟", "en": "Why, in French media, when discussing a foreign topic, do they only invite French analysts?", "fr": "Pourquoi, dans les médias français, lorsqu'on aborde un sujet étranger, on invite que des analystes français ?"}, {"ar": "تم طعن الملك", "en": "The king was stabbed", "fr": "Le roi a été poignardé"}, {"ar": "أتحداك أن تقول الحقيقة", "en": "I dare you to tell the truth", "fr": "Je te mets au défi de dire la vérité"}];
 
 /* ───────── Remembered state ───────── */
 let remembered = {};

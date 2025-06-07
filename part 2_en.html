@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr"><head>
+<html lang="ar"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Flashcards</title>
@@ -105,16 +105,24 @@ body.scrolled #return-button{
 <!-- Settings modal -->
 <div id="settings-modal" class="modal"><div class="modal-content">
 <span class="close" title="Close">×</span><h2>Voice Settings</h2>
-<div class="lang-settings" data-lang="fr">
-  <label>French voice:</label>
+<div class="lang-settings" data-lang="ar">
+  <label>Arabic voice:</label>
   <select class="voice-select"></select>
   <label>Rate: <span class="rate-value">1</span></label>
   <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
   <label>Pitch: <span class="pitch-value">1</span></label>
   <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
 </div><hr>
-<div class="lang-settings" data-lang="nl">
-  <label>Dutch voice:</label>
+<div class="lang-settings" data-lang="en">
+  <label>English voice:</label>
+  <select class="voice-select"></select>
+  <label>Rate: <span class="rate-value">1</span></label>
+  <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
+  <label>Pitch: <span class="pitch-value">1</span></label>
+  <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
+</div><hr>
+<div class="lang-settings" data-lang="fr">
+  <label>French voice:</label>
   <select class="voice-select"></select>
   <label>Rate: <span class="rate-value">1</span></label>
   <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
@@ -125,8 +133,8 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script>
-const LANGS = ["fr", "nl"];
-const CARDS = [{"fr": "Peux-tu me dire combien tu as besoin ?", "nl": "Kun je me vertellen hoeveel je nodig hebt."}, {"fr": "Je suis parti à l'école.", "nl": "Ik ben naar school gegaan."}, {"fr": "Non, je ne suis pas parti à l'école.", "nl": "Nee, ik ben niet naar school gegaan."}, {"fr": "J'ai parlé avec lui.", "nl": "Ik heb met hem gesproken."}, {"fr": "Non, je n'ai pas parlé avec lui.", "nl": "Nee, ik heb niet met hem gesproken."}, {"fr": "J'ai bu du jus d'orange.", "nl": "Ik heb sinaasappelsap gedronken."}, {"fr": "Non, je n'ai pas bu de jus d'orange.", "nl": "Nee, ik heb geen sinaasappelsap gedronken."}, {"fr": "J'ai bu.", "nl": "Ik heb gedronken."}, {"fr": "Non, je n'ai pas bu.", "nl": "Nee, ik heb niet gedronken."}, {"fr": "J'ai mangé.", "nl": "Ik heb gegeten."}, {"fr": "Non, je n'ai pas mangé.", "nl": "Nee, ik heb niet gegeten."}, {"fr": "J'ai fait ça.", "nl": "Ik heb dat gedaan."}, {"fr": "Non, je n'ai pas fait ça.", "nl": "Nee, ik heb dat niet gedaan."}, {"fr": "J'ai fait.", "nl": "Ik heb gedaan."}, {"fr": "Je n'ai rien fait.", "nl": "Ik heb niets gedaan."}, {"fr": "J'ai mangé une pomme.", "nl": "Ik heb een appel gegeten."}, {"fr": "Non, je n'ai pas mangé de pomme.", "nl": "Nee, ik heb geen appel gegeten."}, {"fr": "J'ai décidé.", "nl": "Ik heb besloten."}, {"fr": "Je n'ai pas décidé.", "nl": "Ik heb niet besloten."}, {"fr": "Je n'ai pas encore décidé.", "nl": "Ik heb nog niet besloten."}, {"fr": "Ça c'est vrai.", "nl": "Dat is waar."}, {"fr": "Non, ça ce n'est pas vrai.", "nl": "Nee, dat is niet waar."}, {"fr": "Tu peux m'aider.", "nl": "Je kunt me helpen."}, {"fr": "Non, tu ne peux pas m'aider.", "nl": "Nee, je kunt me niet helpen."}, {"fr": "Je ne sais pas.", "nl": "Ik weet het niet."}, {"fr": "Non, tu ne m'aides pas.", "nl": "Nee, je helpt me niet."}, {"fr": "Tu m'as aidé.", "nl": "Je hebt me geholpen."}, {"fr": "Non, tu ne m'as pas aidé.", "nl": "Nee, je hebt me niet geholpen."}, {"fr": "J'ai fait beaucoup de choses.", "nl": "Ik heb veel dingen gedaan."}, {"fr": "Je n'ai rien fait.", "nl": "Ik heb niets gedaan."}, {"fr": "Je dois l'améliorer.", "nl": "Ik moet het verbeteren."}, {"fr": "Je sais.", "nl": "Ik weet het."}, {"fr": "Je ne sais pas.", "nl": "Ik weet het niet."}];
+const LANGS = ["ar", "en", "fr"];
+const CARDS = [{"ar": "من حين إلى آخر", "en": "Occasional", "fr": "Occasionnel"}, {"ar": "غير رسمي", "en": "Casual", "fr": "Informel"}, {"ar": "شحال دابا من كيلومتر غادي نكونوا ضربنا دابا", "en": "How many miles have we driven by now?", "fr": "Combien de kilomètres avons-nous parcouru maintenant ?"}, {"ar": "كان كيجري بكل قصر جهده", "en": "He was running as fast as he could", "fr": "Il courait aussi vite qu'il pouvait"}, {"ar": "ألم أرسلك لتذهبي وتنادي لجدك من أجل العشاء", "en": "Didn't I send you to call Grandpa for dinner?", "fr": "Ne t'ai-je pas envoyée appeler grand-père pour le dîner ?"}, {"ar": "ذنوب", "en": "Sins", "fr": "Péchés"}, {"ar": "استطلاع الرأي العام", "en": "Opinion poll", "fr": "Sondage d'opinion"}, {"ar": "هذا الفيروس قد أظهر لنا العديد من الأمور", "en": "This virus has shown us a lot of things", "fr": "Ce virus nous a montré beaucoup de choses"}, {"ar": "حسنة", "en": "Good deed", "fr": "Bonne action"}, {"ar": "التفاهة", "en": "Insignificance", "fr": "Insignifiance"}, {"ar": "الحكومة تفرض القانون", "en": "The government enforces the law", "fr": "Le gouvernement applique la loi"}, {"ar": "إنهم يحاولون تحريف وقائع تاريخية", "en": "They intend to distort historical facts", "fr": "Ils cherchent à déformer les faits historiques"}, {"ar": "عندما استولت الجيوش البريطانية على كيبيك عام 1759", "en": "When the British armies captured Quebec in 1759", "fr": "Lorsque les armées britanniques ont capturé Québec en 1759"}, {"ar": "عندما تقترب عطلة رأس السنة دائماً نشعر بالسعادة", "en": "When New Year's holiday approaches, we always feel happy", "fr": "Quand les vacances du Nouvel An approchent, nous ressentons toujours de la joie"}, {"ar": "يرغبون في استغلال العديد من الأمور على حساب الناس", "en": "They want to exploit many things at the expense of the people", "fr": "Ils veulent exploiter de nombreuses choses au détriment des gens"}, {"ar": "تجاهل شخص بازدراء: الرئيس تجاهل كل اقتراح قدمه توم", "en": "The boss snubbed every suggestion Tom made", "fr": "Le patron a ignoré toutes les suggestions faites par Tom"}, {"ar": "علم الفلك", "en": "Astronomy", "fr": "Astronomie"}, {"ar": "صندوق النقد الدولي", "en": "International Monetary Fund", "fr": "Fonds monétaire international"}, {"ar": "جلد", "en": "Leather", "fr": "Cuir"}, {"ar": "شارع ضيق", "en": "Narrow street", "fr": "Rue étroite"}, {"ar": "أجندة سياسية معينة", "en": "Political agenda", "fr": "Agenda politique"}];
 
 /* ───────── Remembered state ───────── */
 let remembered = {};

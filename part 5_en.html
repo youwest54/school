@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr"><head>
+<html lang="ar"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Flashcards</title>
@@ -105,16 +105,24 @@ body.scrolled #return-button{
 <!-- Settings modal -->
 <div id="settings-modal" class="modal"><div class="modal-content">
 <span class="close" title="Close">×</span><h2>Voice Settings</h2>
-<div class="lang-settings" data-lang="fr">
-  <label>French voice:</label>
+<div class="lang-settings" data-lang="ar">
+  <label>Arabic voice:</label>
   <select class="voice-select"></select>
   <label>Rate: <span class="rate-value">1</span></label>
   <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
   <label>Pitch: <span class="pitch-value">1</span></label>
   <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
 </div><hr>
-<div class="lang-settings" data-lang="nl">
-  <label>Dutch voice:</label>
+<div class="lang-settings" data-lang="en">
+  <label>English voice:</label>
+  <select class="voice-select"></select>
+  <label>Rate: <span class="rate-value">1</span></label>
+  <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
+  <label>Pitch: <span class="pitch-value">1</span></label>
+  <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
+</div><hr>
+<div class="lang-settings" data-lang="fr">
+  <label>French voice:</label>
   <select class="voice-select"></select>
   <label>Rate: <span class="rate-value">1</span></label>
   <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
@@ -125,8 +133,8 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script>
-const LANGS = ["fr", "nl"];
-const CARDS = [{"fr": "Peux-tu me dire combien tu as besoin ?", "nl": "Kun je me vertellen hoeveel je nodig hebt."}, {"fr": "Je suis parti à l'école.", "nl": "Ik ben naar school gegaan."}, {"fr": "Non, je ne suis pas parti à l'école.", "nl": "Nee, ik ben niet naar school gegaan."}, {"fr": "J'ai parlé avec lui.", "nl": "Ik heb met hem gesproken."}, {"fr": "Non, je n'ai pas parlé avec lui.", "nl": "Nee, ik heb niet met hem gesproken."}, {"fr": "J'ai bu du jus d'orange.", "nl": "Ik heb sinaasappelsap gedronken."}, {"fr": "Non, je n'ai pas bu de jus d'orange.", "nl": "Nee, ik heb geen sinaasappelsap gedronken."}, {"fr": "J'ai bu.", "nl": "Ik heb gedronken."}, {"fr": "Non, je n'ai pas bu.", "nl": "Nee, ik heb niet gedronken."}, {"fr": "J'ai mangé.", "nl": "Ik heb gegeten."}, {"fr": "Non, je n'ai pas mangé.", "nl": "Nee, ik heb niet gegeten."}, {"fr": "J'ai fait ça.", "nl": "Ik heb dat gedaan."}, {"fr": "Non, je n'ai pas fait ça.", "nl": "Nee, ik heb dat niet gedaan."}, {"fr": "J'ai fait.", "nl": "Ik heb gedaan."}, {"fr": "Je n'ai rien fait.", "nl": "Ik heb niets gedaan."}, {"fr": "J'ai mangé une pomme.", "nl": "Ik heb een appel gegeten."}, {"fr": "Non, je n'ai pas mangé de pomme.", "nl": "Nee, ik heb geen appel gegeten."}, {"fr": "J'ai décidé.", "nl": "Ik heb besloten."}, {"fr": "Je n'ai pas décidé.", "nl": "Ik heb niet besloten."}, {"fr": "Je n'ai pas encore décidé.", "nl": "Ik heb nog niet besloten."}, {"fr": "Ça c'est vrai.", "nl": "Dat is waar."}, {"fr": "Non, ça ce n'est pas vrai.", "nl": "Nee, dat is niet waar."}, {"fr": "Tu peux m'aider.", "nl": "Je kunt me helpen."}, {"fr": "Non, tu ne peux pas m'aider.", "nl": "Nee, je kunt me niet helpen."}, {"fr": "Je ne sais pas.", "nl": "Ik weet het niet."}, {"fr": "Non, tu ne m'aides pas.", "nl": "Nee, je helpt me niet."}, {"fr": "Tu m'as aidé.", "nl": "Je hebt me geholpen."}, {"fr": "Non, tu ne m'as pas aidé.", "nl": "Nee, je hebt me niet geholpen."}, {"fr": "J'ai fait beaucoup de choses.", "nl": "Ik heb veel dingen gedaan."}, {"fr": "Je n'ai rien fait.", "nl": "Ik heb niets gedaan."}, {"fr": "Je dois l'améliorer.", "nl": "Ik moet het verbeteren."}, {"fr": "Je sais.", "nl": "Ik weet het."}, {"fr": "Je ne sais pas.", "nl": "Ik weet het niet."}];
+const LANGS = ["ar", "en", "fr"];
+const CARDS = [{"ar": "معوج", "en": "Crooked", "fr": "Tordu"}, {"ar": "احتكار", "en": "Monopolization", "fr": "Monopole"}, {"ar": "غير صبر", "en": "Hang in there", "fr": "Tiens bon"}, {"ar": "كنحاول نقص من السكر", "en": "I'm trying to cut down on sugar", "fr": "J'essaie de réduire ma consommation de sucre"}, {"ar": "قاطعتك", "en": "I cut you in", "fr": "Je t'ai interrompu"}, {"ar": "بنية التحتية", "en": "Infrastructure", "fr": "Infrastructure"}, {"ar": "الاكتفاء الذاتي، تونس تهدف إلى الاكتفاء الذاتي في إنتاج القمح", "en": "Economic self-sufficiency. Tunisia aims for self-sufficiency in wheat production.", "fr": "Autosuffisance économique. La Tunisie vise l'autosuffisance en blé."}, {"ar": "لو كنت قد عملت بجد أكثر، لكنت نجحت في امتحانك", "en": "If you had worked harder, you would have passed your exam.", "fr": "Si tu avais travaillé plus dur, tu aurais réussi ton examen."}, {"ar": "كسل، تراخ، تبطّل", "en": "Inaction. His chronic laziness prevented him from completing his assignments on time.", "fr": "Inaction. Sa paresse chronique l'a empêché de terminer ses tâches à temps."}, {"ar": "هذا الوقت الممتع لم يدم طويلاً", "en": "This pleasant time didn't last long", "fr": "Ce moment agréable n'a pas duré longtemps"}, {"ar": "هذا البنتهاوس يحتوي على نظام تقني متطور جداً", "en": "This penthouse has a very sophisticated technology system.", "fr": "Ce penthouse dispose d'un système technologique très sophistiqué."}, {"ar": "وجهك قاسح", "en": "You got audacity", "fr": "Tu as du culot"}, {"ar": "تسبب تماطله المستمر في فقدان المواعيد النهائية في العمل", "en": "His constant procrastination led to missed deadlines at work.", "fr": "Sa procrastination constante a entraîné des échéances manquées au travail."}, {"ar": "جريء", "en": "Daring", "fr": "Audacieux"}, {"ar": "حماسي", "en": "Enthusiastic", "fr": "Enthousiaste"}, {"ar": "تسليط الضوء", "en": "Shine light", "fr": "Mettre en lumière"}, {"ar": "تنمر", "en": "Bullying", "fr": "Harcèlement"}, {"ar": "بطريقة قابلة للتنبؤ", "en": "In a predictable way", "fr": "De manière prévisible"}, {"ar": "كما هو متوقع", "en": "As can be expected", "fr": "Comme on peut s'y attendre"}, {"ar": "الطريقة التي توقعها الجميع", "en": "The way everyone expected", "fr": "La façon dont tout le monde s'y attendait"}, {"ar": "أين أقيمت حفلة جوائز الموسيقى الأمريكية لعام 2020؟", "en": "Where did the American Music Awards (AMAs) take place in 2020?", "fr": "Où ont eu lieu les American Music Awards en 2020 ?"}, {"ar": "تم بناء المعبد القديم لتقديس الآلهة", "en": "The ancient temple was built for the sanctification of the gods.", "fr": "Le temple ancien a été construit pour la sanctification des dieux."}, {"ar": "الجشع", "en": "Greed", "fr": "Avarice"}, {"ar": "غضب", "en": "Anger", "fr": "Colère"}, {"ar": "أدوات", "en": "Tools", "fr": "Outils"}, {"ar": "العقول النيرة", "en": "Bright minds", "fr": "Les esprits brillants"}, {"ar": "الاستفزاز", "en": "Provocation", "fr": "Provocation"}, {"ar": "افتراضي", "en": "Virtual", "fr": "Virtuel"}, {"ar": "تسويق", "en": "Marketing", "fr": "Marketing"}];
 
 /* ───────── Remembered state ───────── */
 let remembered = {};

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr"><head>
+<html lang="ar"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Flashcards</title>
@@ -105,16 +105,24 @@ body.scrolled #return-button{
 <!-- Settings modal -->
 <div id="settings-modal" class="modal"><div class="modal-content">
 <span class="close" title="Close">×</span><h2>Voice Settings</h2>
-<div class="lang-settings" data-lang="fr">
-  <label>French voice:</label>
+<div class="lang-settings" data-lang="ar">
+  <label>Arabic voice:</label>
   <select class="voice-select"></select>
   <label>Rate: <span class="rate-value">1</span></label>
   <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
   <label>Pitch: <span class="pitch-value">1</span></label>
   <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
 </div><hr>
-<div class="lang-settings" data-lang="nl">
-  <label>Dutch voice:</label>
+<div class="lang-settings" data-lang="en">
+  <label>English voice:</label>
+  <select class="voice-select"></select>
+  <label>Rate: <span class="rate-value">1</span></label>
+  <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
+  <label>Pitch: <span class="pitch-value">1</span></label>
+  <input type="range" class="pitch-range" min="0" max="2" step="0.1" value="1">
+</div><hr>
+<div class="lang-settings" data-lang="fr">
+  <label>French voice:</label>
   <select class="voice-select"></select>
   <label>Rate: <span class="rate-value">1</span></label>
   <input type="range" class="rate-range" min="0.5" max="2" step="0.1" value="1">
@@ -125,8 +133,8 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script>
-const LANGS = ["fr", "nl"];
-const CARDS = [{"fr": "Peux-tu me dire combien tu as besoin ?", "nl": "Kun je me vertellen hoeveel je nodig hebt."}, {"fr": "Je suis parti à l'école.", "nl": "Ik ben naar school gegaan."}, {"fr": "Non, je ne suis pas parti à l'école.", "nl": "Nee, ik ben niet naar school gegaan."}, {"fr": "J'ai parlé avec lui.", "nl": "Ik heb met hem gesproken."}, {"fr": "Non, je n'ai pas parlé avec lui.", "nl": "Nee, ik heb niet met hem gesproken."}, {"fr": "J'ai bu du jus d'orange.", "nl": "Ik heb sinaasappelsap gedronken."}, {"fr": "Non, je n'ai pas bu de jus d'orange.", "nl": "Nee, ik heb geen sinaasappelsap gedronken."}, {"fr": "J'ai bu.", "nl": "Ik heb gedronken."}, {"fr": "Non, je n'ai pas bu.", "nl": "Nee, ik heb niet gedronken."}, {"fr": "J'ai mangé.", "nl": "Ik heb gegeten."}, {"fr": "Non, je n'ai pas mangé.", "nl": "Nee, ik heb niet gegeten."}, {"fr": "J'ai fait ça.", "nl": "Ik heb dat gedaan."}, {"fr": "Non, je n'ai pas fait ça.", "nl": "Nee, ik heb dat niet gedaan."}, {"fr": "J'ai fait.", "nl": "Ik heb gedaan."}, {"fr": "Je n'ai rien fait.", "nl": "Ik heb niets gedaan."}, {"fr": "J'ai mangé une pomme.", "nl": "Ik heb een appel gegeten."}, {"fr": "Non, je n'ai pas mangé de pomme.", "nl": "Nee, ik heb geen appel gegeten."}, {"fr": "J'ai décidé.", "nl": "Ik heb besloten."}, {"fr": "Je n'ai pas décidé.", "nl": "Ik heb niet besloten."}, {"fr": "Je n'ai pas encore décidé.", "nl": "Ik heb nog niet besloten."}, {"fr": "Ça c'est vrai.", "nl": "Dat is waar."}, {"fr": "Non, ça ce n'est pas vrai.", "nl": "Nee, dat is niet waar."}, {"fr": "Tu peux m'aider.", "nl": "Je kunt me helpen."}, {"fr": "Non, tu ne peux pas m'aider.", "nl": "Nee, je kunt me niet helpen."}, {"fr": "Je ne sais pas.", "nl": "Ik weet het niet."}, {"fr": "Non, tu ne m'aides pas.", "nl": "Nee, je helpt me niet."}, {"fr": "Tu m'as aidé.", "nl": "Je hebt me geholpen."}, {"fr": "Non, tu ne m'as pas aidé.", "nl": "Nee, je hebt me niet geholpen."}, {"fr": "J'ai fait beaucoup de choses.", "nl": "Ik heb veel dingen gedaan."}, {"fr": "Je n'ai rien fait.", "nl": "Ik heb niets gedaan."}, {"fr": "Je dois l'améliorer.", "nl": "Ik moet het verbeteren."}, {"fr": "Je sais.", "nl": "Ik weet het."}, {"fr": "Je ne sais pas.", "nl": "Ik weet het niet."}];
+const LANGS = ["ar", "en", "fr"];
+const CARDS = [{"ar": "هذا القط يتصرف بطريقة غريبة", "en": "This cat behaves in a peculiar manner.", "fr": "Ce chat se comporte d'une manière étrange."}, {"ar": "أود أقل من", "en": "Would want less than", "fr": "Voudrais moins que"}, {"ar": "مؤتمر", "en": "Conference", "fr": "Conférence"}, {"ar": "ألعاب الكلمات حول الأخبار", "en": "Wordplay on current events", "fr": "Les jeux de mots sur les actualités"}, {"ar": "ضرر", "en": "Harm", "fr": "Dommage"}, {"ar": "نحن مكتفون ذاتيًا", "en": "We are self-sufficient", "fr": "Nous sommes autosuffisants"}, {"ar": "أحمق", "en": "Douchebag", "fr": "Connard"}, {"ar": "كان يسخر", "en": "Ironisait", "fr": "Ironisait"}, {"ar": "الكبرياء والأنا", "en": "Pride and ego", "fr": "Fierté et ego"}, {"ar": "مرتزق", "en": "Mercenary", "fr": "Mercenaire"}, {"ar": "قلق من تصاعد الغضب المعادي للغرب", "en": "Concerned about rising anti-Western anger", "fr": "Inquiète d’une montée de la colère anti-occidentale"}, {"ar": "لا زلنا في وقت العمل", "en": "We are still on the clock", "fr": "Nous sommes toujours dans le temps de travail"}, {"ar": "منذ متى تعرف ذلك؟", "en": "How long have you known?", "fr": "Depuis combien de temps tu sais ?"}, {"ar": "حان الوقت", "en": "It’s past time", "fr": "Il est grand temps"}, {"ar": "الحضانة", "en": "Custody", "fr": "La garde"}, {"ar": "تحدى", "en": "Defy", "fr": "Défier"}];
 
 /* ───────── Remembered state ───────── */
 let remembered = {};
