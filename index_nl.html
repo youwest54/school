@@ -66,8 +66,24 @@
     .grid a:hover{background:var(--primary);color:#fff}
     .grid a:active{transform:scale(.97)}
 
+    /* ─────────  RETURN BUTTON (for language index pages only)  ───────── */
+    #return-button{
+      position:fixed;
+      bottom:calc(env(safe-area-inset-bottom,0) + 1rem);
+      left:  calc(env(safe-area-inset-left ,0) + 1rem);
+      width:10rem;height:10rem;font-size:4rem;
+      display:flex;align-items:center;justify-content:center;
+      text-decoration:none;border:none;border-radius:50%;
+      background:var(--primary);color:#fff;
+      box-shadow:0 3px 8px rgba(0,0,0,.25);
+      z-index:1002;cursor:pointer;touch-action:manipulation;
+      transition:transform .25s ease,opacity .25s ease;   /* smooth shrink */
+    }
+    body.scrolled #return-button{transform:scale(.85);opacity:.4}
+
     /* small iPhones */
     @media(max-width:400px){
+      #return-button{width:7rem;height:7rem;font-size:3rem}
       .grid a{font-size:.9rem;padding:calc(var(--pad)*.65)}
       h1{font-size:clamp(1.25rem,6vw,1.6rem)}
     }
@@ -90,6 +106,8 @@
 
   <div class="scroll-buffer"></div>
 
+  <a id="return-button" href="index.html" title="Back">←</a>
+
   <script>
     /* ---- Tile "✔" state ---- */
     document.querySelectorAll('.grid a').forEach(tile=>{
@@ -107,6 +125,10 @@
         localStorage.setItem('done_'+href,tile.classList.contains('done'));
       });
     });
+
+    /* ---- Auto-shrink return button ---- */
+    document.addEventListener('scroll',()=>document.body.classList.
+      toggle('scrolled',window.scrollY>40));
   </script>
 </body>
 </html>
