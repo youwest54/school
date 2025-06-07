@@ -223,18 +223,4 @@ document.getElementById('return-button').onclick=()=>{{
   else location.href='index.html';   /* adjust if "home" differs */
 }};
 </script>
-
-<a id="return-button" href="index_en.html" title="Back">←</a>
-<style>
-#return-button{position:fixed;bottom:calc(env(safe-area-inset-bottom,0)+1rem);
-left:calc(env(safe-area-inset-left,0)+1rem);width:10rem;height:10rem;font-size:4rem;
-display:flex;align-items:center;justify-content:center;border:none;border-radius:50%;
-background:#1976d2;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.25);z-index:1002;
-cursor:pointer;touch-action:manipulation;transition:transform .25s ease,opacity .25s ease;}
-body.scrolled #return-button{transform:scale(.85);opacity:.4}
-@media(max-width:400px){#return-button{width:7rem;height:7rem;font-size:3rem}}
-</style>
-<script>document.addEventListener('scroll',()=>document.body.classList.
-toggle('scrolled',window.scrollY>40));</script>
-
 </body></html>
