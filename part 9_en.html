@@ -132,14 +132,14 @@ body.scrolled #return-button{
 </div></div>
 <button id="return-button" title="Return">←</button>
 
+<script src="marks.js?v=5"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "أود أن أذكرك، أنه يمكنك التعبير عن جميع آرائك بشكل كامل، لكن عليك أن تظهر الاحترام لجميع المتواجدين، هذه القواعد التي يجب على الجميع الالتزام بها", "en": "I would like to remind you that you are free to express all your opinions fully, but it is important to show respect to everyone present. These are the rules that everyone should adhere to.", "fr": "Je tiens à vous rappeler que vous êtes libre d'exprimer toutes vos opinions en toute liberté, mais il est important de respecter la présence de chacun. Ce sont les règles auxquelles tout le monde devrait adhérer."}, {"ar": "الكلية ليست للجميع وهناك العديد من الطرق للحصول على التعليم", "en": "College is not for everybody, and there are many ways to get an education.", "fr": "L'université n'est pas pour tout le monde, et il existe de nombreuses façons de se former."}, {"ar": "أتحدث من منظور إنساني عام", "en": "Talking from a very general humanistic perspective", "fr": "Parler d'un point de vue humaniste très général"}, {"ar": "الهجوم الذي أدى إلى", "en": "The attack that led to", "fr": "L'attaque qui a mené à"}, {"ar": "التعقيدات المطلقة", "en": "Absolute intricacies", "fr": "Les complexités absolues"}, {"ar": "هل وصلت؟", "en": "Have you arrived?", "fr": "Es-tu arrivé ?"}, {"ar": "في بعض الأحيان يجب القيام بتنازلات", "en": "Sometimes compromises have to be made", "fr": "Parfois, des compromis doivent être faits"}, {"ar": "لا أفهم", "en": "Beats me", "fr": "Ça me dépasse"}, {"ar": "الترهيب", "en": "Hectoring", "fr": "Harcèlement"}, {"ar": "دولة ذو سيادة", "en": "Sovereign state / Independent state", "fr": "État souverain / État indépendant"}, {"ar": "المثابرة", "en": "Perseverance", "fr": "Persévérance"}];
 
 /* ───────── Remembered state ───────── */
-let remembered = {};
-try{ remembered = JSON.parse(localStorage.getItem('flashcardRemembered'))||{}; }catch(e){}
-function saveRemembered(){ localStorage.setItem('flashcardRemembered',JSON.stringify(remembered)); }
+let remembered = window.Marks.cardsForPage();
+function saveRemembered(){ window.Marks.writeCards(remembered); }
 
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
@@ -208,10 +208,25 @@ document.getElementById('flip-all-button').onclick=()=>document.querySelectorAll
   c.dataset.side=0; c.querySelector('.content').textContent=CARDS[i][LANGS[0]]||''; });
 
 /* ───────── Build cards on load ───────── */
+function paintRemembered(){
+  remembered = window.Marks.cardsForPage();
+  document.querySelectorAll('.flashcard').forEach((card,index)=>{
+    const st=!!remembered[index];
+    const rem=card.querySelector('.remember-button');
+    card.classList.toggle('remembered',st);
+    if(rem){
+      rem.classList.toggle('remembered',st);
+      rem.textContent=st?'Unmark Remembered':'Mark as Remembered';
+    }
+  });
+}
 window.addEventListener('DOMContentLoaded',()=>{
+  remembered = window.Marks.cardsForPage();
   const cont=document.getElementById('card-container');
   CARDS.forEach((d,i)=>cont.append(createCard(d,i)));
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  window.Marks.onChange(paintRemembered);
+  window.Marks.ready.then(paintRemembered);
 });
 
 /* ───────── Auto-hide/shrink return-button on scroll ───────── */

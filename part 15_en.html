@@ -132,14 +132,14 @@ body.scrolled #return-button{
 </div></div>
 <button id="return-button" title="Return">←</button>
 
+<script src="marks.js?v=5"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "حبة", "en": "Grain", "fr": "Blé"}, {"ar": "استغلال", "en": "Exploit", "fr": "Exploiter"}, {"ar": "طابور", "en": "Queue", "fr": "File d'attente"}, {"ar": "تنهيدة", "en": "Sigh", "fr": "Soupir"}, {"ar": "تنوع", "en": "Variety", "fr": "Variété"}, {"ar": "التركيز", "en": "Focusing", "fr": "Concentration"}, {"ar": "هامشي", "en": "Marginal", "fr": "Marginal"}, {"ar": "التهميش", "en": "Marginalisation", "fr": "Marginalisation"}, {"ar": "يسبب", "en": "Trigger", "fr": "Déclencheur"}, {"ar": "مكافأة", "en": "Reward", "fr": "Récompense"}, {"ar": "مذعور", "en": "Startled", "fr": "Surpris"}, {"ar": "التجاهل", "en": "Snubbing", "fr": "Ignorer"}, {"ar": "ملتزم", "en": "Committed", "fr": "Engagé"}, {"ar": "خزائن", "en": "Cupboards", "fr": "Placards"}, {"ar": "حكة", "en": "Itching", "fr": "Démangeaison"}, {"ar": "تعرض للسرقة", "en": "Mugged", "fr": "Agressé"}, {"ar": "تشويه السمعة", "en": "Discredit", "fr": "Discréditer"}, {"ar": "مبهر", "en": "Fascinating", "fr": "Fascinant"}, {"ar": "حدود", "en": "Boundary", "fr": "Limite"}, {"ar": "قمح", "en": "Wheat", "fr": "Blé"}, {"ar": "مهنة", "en": "Career", "fr": "Carrière"}, {"ar": "التسول", "en": "Begging", "fr": "Mendicité"}, {"ar": "عبادة الأصنام", "en": "Idolatry", "fr": "Idolâtrie"}, {"ar": "يطلب مئات الأشخاص في المطارات اللجوء السياسي", "en": "Hundreds of people claim political asylum at airports", "fr": "Des centaines de personnes demandent l'asile politique dans les aéroports"}, {"ar": "تجسيد", "en": "Concretisation", "fr": "Concrétisation"}, {"ar": "تكريس، تقديس", "en": "Sanctification (making something holy)", "fr": "Sanctification"}, {"ar": "التفاهة", "en": "Pettiness", "fr": "Insignifiance"}, {"ar": "يا إلهي! أتعتقد أن الشمس تدور حول الأرض؟ أنت متخلف حقًا", "en": "Oh my God! You think the sun moves around the earth? You are such a retard!", "fr": "Oh mon Dieu! Tu crois que le soleil tourne autour de la Terre? Tu es vraiment un attardé!"}, {"ar": "قد يبدو الناس قليلاً متخلفين ولكنهم ودودون جدًا", "en": "The people may seem a little backward but they're very friendly", "fr": "Les gens peuvent sembler un peu arriérés, mais ils sont très amicaux."}, {"ar": "مر", "en": "Bitter", "fr": "Amer"}, {"ar": "انتحر", "en": "Committed suicide", "fr": "S'est suicidé"}, {"ar": "المنافس", "en": "Competitor", "fr": "Concurrent"}, {"ar": "تصنع", "en": "Pretend", "fr": "Faire semblant"}, {"ar": "الرعد", "en": "Thunder", "fr": "Tonnerre"}, {"ar": "الحرث", "en": "Plowing", "fr": "Labour"}, {"ar": "احتقار", "en": "Contempt", "fr": "Mépris"}, {"ar": "إعفاء", "en": "Exemption", "fr": "Exonération"}, {"ar": "أنت لا تزال متخلفًا", "en": "You're still backward", "fr": "Tu es encore arriéré"}, {"ar": "حصاد", "en": "Harvest", "fr": "Récolte"}];
 
 /* ───────── Remembered state ───────── */
-let remembered = {};
-try{ remembered = JSON.parse(localStorage.getItem('flashcardRemembered'))||{}; }catch(e){}
-function saveRemembered(){ localStorage.setItem('flashcardRemembered',JSON.stringify(remembered)); }
+let remembered = window.Marks.cardsForPage();
+function saveRemembered(){ window.Marks.writeCards(remembered); }
 
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
@@ -208,10 +208,25 @@ document.getElementById('flip-all-button').onclick=()=>document.querySelectorAll
   c.dataset.side=0; c.querySelector('.content').textContent=CARDS[i][LANGS[0]]||''; });
 
 /* ───────── Build cards on load ───────── */
+function paintRemembered(){
+  remembered = window.Marks.cardsForPage();
+  document.querySelectorAll('.flashcard').forEach((card,index)=>{
+    const st=!!remembered[index];
+    const rem=card.querySelector('.remember-button');
+    card.classList.toggle('remembered',st);
+    if(rem){
+      rem.classList.toggle('remembered',st);
+      rem.textContent=st?'Unmark Remembered':'Mark as Remembered';
+    }
+  });
+}
 window.addEventListener('DOMContentLoaded',()=>{
+  remembered = window.Marks.cardsForPage();
   const cont=document.getElementById('card-container');
   CARDS.forEach((d,i)=>cont.append(createCard(d,i)));
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  window.Marks.onChange(paintRemembered);
+  window.Marks.ready.then(paintRemembered);
 });
 
 /* ───────── Auto-hide/shrink return-button on scroll ───────── */

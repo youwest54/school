@@ -132,14 +132,14 @@ body.scrolled #return-button{
 </div></div>
 <button id="return-button" title="Return">←</button>
 
+<script src="marks.js?v=5"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "هذا القط يتصرف بطريقة غريبة", "en": "This cat behaves in a peculiar manner.", "fr": "Ce chat se comporte d'une manière étrange."}, {"ar": "أود أقل من", "en": "Would want less than", "fr": "Voudrais moins que"}, {"ar": "مؤتمر", "en": "Conference", "fr": "Conférence"}, {"ar": "ألعاب الكلمات حول الأخبار", "en": "Wordplay on current events", "fr": "Les jeux de mots sur les actualités"}, {"ar": "ضرر", "en": "Harm", "fr": "Dommage"}, {"ar": "نحن مكتفون ذاتيًا", "en": "We are self-sufficient", "fr": "Nous sommes autosuffisants"}, {"ar": "أحمق", "en": "Douchebag", "fr": "Connard"}, {"ar": "كان يسخر", "en": "Ironisait", "fr": "Ironisait"}, {"ar": "الكبرياء والأنا", "en": "Pride and ego", "fr": "Fierté et ego"}, {"ar": "مرتزق", "en": "Mercenary", "fr": "Mercenaire"}, {"ar": "قلق من تصاعد الغضب المعادي للغرب", "en": "Concerned about rising anti-Western anger", "fr": "Inquiète d’une montée de la colère anti-occidentale"}, {"ar": "لا زلنا في وقت العمل", "en": "We are still on the clock", "fr": "Nous sommes toujours dans le temps de travail"}, {"ar": "منذ متى تعرف ذلك؟", "en": "How long have you known?", "fr": "Depuis combien de temps tu sais ?"}, {"ar": "حان الوقت", "en": "It’s past time", "fr": "Il est grand temps"}, {"ar": "الحضانة", "en": "Custody", "fr": "La garde"}, {"ar": "تحدى", "en": "Defy", "fr": "Défier"}];
 
 /* ───────── Remembered state ───────── */
-let remembered = {};
-try{ remembered = JSON.parse(localStorage.getItem('flashcardRemembered'))||{}; }catch(e){}
-function saveRemembered(){ localStorage.setItem('flashcardRemembered',JSON.stringify(remembered)); }
+let remembered = window.Marks.cardsForPage();
+function saveRemembered(){ window.Marks.writeCards(remembered); }
 
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
@@ -208,10 +208,25 @@ document.getElementById('flip-all-button').onclick=()=>document.querySelectorAll
   c.dataset.side=0; c.querySelector('.content').textContent=CARDS[i][LANGS[0]]||''; });
 
 /* ───────── Build cards on load ───────── */
+function paintRemembered(){
+  remembered = window.Marks.cardsForPage();
+  document.querySelectorAll('.flashcard').forEach((card,index)=>{
+    const st=!!remembered[index];
+    const rem=card.querySelector('.remember-button');
+    card.classList.toggle('remembered',st);
+    if(rem){
+      rem.classList.toggle('remembered',st);
+      rem.textContent=st?'Unmark Remembered':'Mark as Remembered';
+    }
+  });
+}
 window.addEventListener('DOMContentLoaded',()=>{
+  remembered = window.Marks.cardsForPage();
   const cont=document.getElementById('card-container');
   CARDS.forEach((d,i)=>cont.append(createCard(d,i)));
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  window.Marks.onChange(paintRemembered);
+  window.Marks.ready.then(paintRemembered);
 });
 
 /* ───────── Auto-hide/shrink return-button on scroll ───────── */

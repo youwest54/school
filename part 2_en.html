@@ -132,14 +132,14 @@ body.scrolled #return-button{
 </div></div>
 <button id="return-button" title="Return">←</button>
 
+<script src="marks.js?v=5"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "من حين إلى آخر", "en": "Occasional", "fr": "Occasionnel"}, {"ar": "غير رسمي", "en": "Casual", "fr": "Informel"}, {"ar": "شحال دابا من كيلومتر غادي نكونوا ضربنا دابا", "en": "How many miles have we driven by now?", "fr": "Combien de kilomètres avons-nous parcouru maintenant ?"}, {"ar": "كان كيجري بكل قصر جهده", "en": "He was running as fast as he could", "fr": "Il courait aussi vite qu'il pouvait"}, {"ar": "ألم أرسلك لتذهبي وتنادي لجدك من أجل العشاء", "en": "Didn't I send you to call Grandpa for dinner?", "fr": "Ne t'ai-je pas envoyée appeler grand-père pour le dîner ?"}, {"ar": "ذنوب", "en": "Sins", "fr": "Péchés"}, {"ar": "استطلاع الرأي العام", "en": "Opinion poll", "fr": "Sondage d'opinion"}, {"ar": "هذا الفيروس قد أظهر لنا العديد من الأمور", "en": "This virus has shown us a lot of things", "fr": "Ce virus nous a montré beaucoup de choses"}, {"ar": "حسنة", "en": "Good deed", "fr": "Bonne action"}, {"ar": "التفاهة", "en": "Insignificance", "fr": "Insignifiance"}, {"ar": "الحكومة تفرض القانون", "en": "The government enforces the law", "fr": "Le gouvernement applique la loi"}, {"ar": "إنهم يحاولون تحريف وقائع تاريخية", "en": "They intend to distort historical facts", "fr": "Ils cherchent à déformer les faits historiques"}, {"ar": "عندما استولت الجيوش البريطانية على كيبيك عام 1759", "en": "When the British armies captured Quebec in 1759", "fr": "Lorsque les armées britanniques ont capturé Québec en 1759"}, {"ar": "عندما تقترب عطلة رأس السنة دائماً نشعر بالسعادة", "en": "When New Year's holiday approaches, we always feel happy", "fr": "Quand les vacances du Nouvel An approchent, nous ressentons toujours de la joie"}, {"ar": "يرغبون في استغلال العديد من الأمور على حساب الناس", "en": "They want to exploit many things at the expense of the people", "fr": "Ils veulent exploiter de nombreuses choses au détriment des gens"}, {"ar": "تجاهل شخص بازدراء: الرئيس تجاهل كل اقتراح قدمه توم", "en": "The boss snubbed every suggestion Tom made", "fr": "Le patron a ignoré toutes les suggestions faites par Tom"}, {"ar": "علم الفلك", "en": "Astronomy", "fr": "Astronomie"}, {"ar": "صندوق النقد الدولي", "en": "International Monetary Fund", "fr": "Fonds monétaire international"}, {"ar": "جلد", "en": "Leather", "fr": "Cuir"}, {"ar": "شارع ضيق", "en": "Narrow street", "fr": "Rue étroite"}, {"ar": "أجندة سياسية معينة", "en": "Political agenda", "fr": "Agenda politique"}];
 
 /* ───────── Remembered state ───────── */
-let remembered = {};
-try{ remembered = JSON.parse(localStorage.getItem('flashcardRemembered'))||{}; }catch(e){}
-function saveRemembered(){ localStorage.setItem('flashcardRemembered',JSON.stringify(remembered)); }
+let remembered = window.Marks.cardsForPage();
+function saveRemembered(){ window.Marks.writeCards(remembered); }
 
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
@@ -208,10 +208,25 @@ document.getElementById('flip-all-button').onclick=()=>document.querySelectorAll
   c.dataset.side=0; c.querySelector('.content').textContent=CARDS[i][LANGS[0]]||''; });
 
 /* ───────── Build cards on load ───────── */
+function paintRemembered(){
+  remembered = window.Marks.cardsForPage();
+  document.querySelectorAll('.flashcard').forEach((card,index)=>{
+    const st=!!remembered[index];
+    const rem=card.querySelector('.remember-button');
+    card.classList.toggle('remembered',st);
+    if(rem){
+      rem.classList.toggle('remembered',st);
+      rem.textContent=st?'Unmark Remembered':'Mark as Remembered';
+    }
+  });
+}
 window.addEventListener('DOMContentLoaded',()=>{
+  remembered = window.Marks.cardsForPage();
   const cont=document.getElementById('card-container');
   CARDS.forEach((d,i)=>cont.append(createCard(d,i)));
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  window.Marks.onChange(paintRemembered);
+  window.Marks.ready.then(paintRemembered);
 });
 
 /* ───────── Auto-hide/shrink return-button on scroll ───────── */

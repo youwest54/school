@@ -132,14 +132,14 @@ body.scrolled #return-button{
 </div></div>
 <button id="return-button" title="Return">←</button>
 
+<script src="marks.js?v=5"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "أنا شنو غانستافد", "en": "What's in it for me", "fr": "Qu'est-ce que j'y gagne ?"}, {"ar": "احترم نفسك", "en": "Behave yourself", "fr": "Comporte-toi bien"}, {"ar": "لا تيأس", "en": "Don't despair", "fr": "Ne désespère pas"}, {"ar": "أشعر بالغثيان", "en": "I feel nauseous", "fr": "J'ai la nausée"}, {"ar": "أنا صريح", "en": "I'm sincere", "fr": "Je suis sincère"}, {"ar": "أنت سندي", "en": "You, you are my rock", "fr": "Tu es mon pilier"}, {"ar": "لم يخلفنا الحظ", "en": "No such luck", "fr": "Pas de chance"}, {"ar": "ذات مرة", "en": "Once upon a time", "fr": "Il était une fois"}, {"ar": "كذب والدته عندما كانت تتحدث", "en": "He contradicted his mother when she was talking", "fr": "Il a contredit sa mère quand elle parlait"}, {"ar": "طريقة تفكير سطحية جداً", "en": "A very shallow way of thinking, it sees things as mere play", "fr": "Une manière de penser très superficielle, elle voit les choses comme un simple jeu"}, {"ar": "تحديد", "en": "Delineated", "fr": "Délimité"}, {"ar": "توسع الإمبراطورية المغولية", "en": "The expansion of the Mongol Empire", "fr": "L'expansion de l'empire mongol"}, {"ar": "عيب", "en": "Flaw", "fr": "Défaut"}, {"ar": "درع بشري", "en": "Human shield", "fr": "Bouclier humain"}];
 
 /* ───────── Remembered state ───────── */
-let remembered = {};
-try{ remembered = JSON.parse(localStorage.getItem('flashcardRemembered'))||{}; }catch(e){}
-function saveRemembered(){ localStorage.setItem('flashcardRemembered',JSON.stringify(remembered)); }
+let remembered = window.Marks.cardsForPage();
+function saveRemembered(){ window.Marks.writeCards(remembered); }
 
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
@@ -208,10 +208,25 @@ document.getElementById('flip-all-button').onclick=()=>document.querySelectorAll
   c.dataset.side=0; c.querySelector('.content').textContent=CARDS[i][LANGS[0]]||''; });
 
 /* ───────── Build cards on load ───────── */
+function paintRemembered(){
+  remembered = window.Marks.cardsForPage();
+  document.querySelectorAll('.flashcard').forEach((card,index)=>{
+    const st=!!remembered[index];
+    const rem=card.querySelector('.remember-button');
+    card.classList.toggle('remembered',st);
+    if(rem){
+      rem.classList.toggle('remembered',st);
+      rem.textContent=st?'Unmark Remembered':'Mark as Remembered';
+    }
+  });
+}
 window.addEventListener('DOMContentLoaded',()=>{
+  remembered = window.Marks.cardsForPage();
   const cont=document.getElementById('card-container');
   CARDS.forEach((d,i)=>cont.append(createCard(d,i)));
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  window.Marks.onChange(paintRemembered);
+  window.Marks.ready.then(paintRemembered);
 });
 
 /* ───────── Auto-hide/shrink return-button on scroll ───────── */

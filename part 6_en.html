@@ -132,14 +132,14 @@ body.scrolled #return-button{
 </div></div>
 <button id="return-button" title="Return">←</button>
 
+<script src="marks.js?v=5"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "أليس كل شيء يصطف", "en": "Doesn’t it all line up", "fr": "N'est-ce pas tout s'aligne"}, {"ar": "مثير للجدل", "en": "Controversial", "fr": "Controversée"}, {"ar": "عائلة مشبوهة", "en": "sketchy family", "fr": "famille louche"}, {"ar": "كنت على وشك أن أصاب بسيارة", "en": "I was on the verge of being hit by a car.", "fr": "J'étais sur le point de me faire renverser par une voiture"}, {"ar": "البقاء", "en": "Remain", "fr": "Rester"}, {"ar": "إلغاء الدعوة", "en": "Disinvite", "fr": "Dé-inviter"}, {"ar": "في غير كنشوف", "en": "Just browsing", "fr": "Juste regarder"}, {"ar": "تسوية", "en": "Compromise", "fr": "Compromettre"}, {"ar": "مثير للجدل", "en": "Controversial", "fr": "Controversée"}, {"ar": "باستمرار", "en": "Constantly", "fr": "Constamment"}, {"ar": "عصافير تزقزق", "en": "Birds chirping", "fr": "Les oiseaux chantent"}, {"ar": "أنا مظلوم", "en": "I am oppressed", "fr": "Je suis opprimé"}, {"ar": "المواد التي تُدرس في المدارس", "en": "The subjects taught in schools", "fr": "Les matières enseignées dans les écoles"}, {"ar": "احصل على الشجاعة للتحدث معه", "en": "Get nerve to talk to him", "fr": "Avoir le courage de lui parler"}, {"ar": "رفع دعوى ضده", "en": "Press charges against him", "fr": "Porter plainte contre lui"}, {"ar": "حالات مرضية", "en": "Medical cases", "fr": "Cas médicaux"}, {"ar": "دقيق", "en": "Accurate", "fr": "Précis"}];
 
 /* ───────── Remembered state ───────── */
-let remembered = {};
-try{ remembered = JSON.parse(localStorage.getItem('flashcardRemembered'))||{}; }catch(e){}
-function saveRemembered(){ localStorage.setItem('flashcardRemembered',JSON.stringify(remembered)); }
+let remembered = window.Marks.cardsForPage();
+function saveRemembered(){ window.Marks.writeCards(remembered); }
 
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
@@ -208,10 +208,25 @@ document.getElementById('flip-all-button').onclick=()=>document.querySelectorAll
   c.dataset.side=0; c.querySelector('.content').textContent=CARDS[i][LANGS[0]]||''; });
 
 /* ───────── Build cards on load ───────── */
+function paintRemembered(){
+  remembered = window.Marks.cardsForPage();
+  document.querySelectorAll('.flashcard').forEach((card,index)=>{
+    const st=!!remembered[index];
+    const rem=card.querySelector('.remember-button');
+    card.classList.toggle('remembered',st);
+    if(rem){
+      rem.classList.toggle('remembered',st);
+      rem.textContent=st?'Unmark Remembered':'Mark as Remembered';
+    }
+  });
+}
 window.addEventListener('DOMContentLoaded',()=>{
+  remembered = window.Marks.cardsForPage();
   const cont=document.getElementById('card-container');
   CARDS.forEach((d,i)=>cont.append(createCard(d,i)));
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  window.Marks.onChange(paintRemembered);
+  window.Marks.ready.then(paintRemembered);
 });
 
 /* ───────── Auto-hide/shrink return-button on scroll ───────── */

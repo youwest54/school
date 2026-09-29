@@ -126,23 +126,28 @@
 
   <a id="return-button" href="index.html" title="Back">←</a>
 
+  <script src="marks.js?v=5"></script>
   <script>
-    /* ---- Tile "✔" state ---- */
+    /* ---- Tile "✔" state (shared across computers) ---- */
+    function paintTiles(){
+      document.querySelectorAll('.grid a').forEach(tile=>{
+        tile.classList.toggle('done', window.Marks.isDone(tile.getAttribute('href')));
+      });
+    }
     document.querySelectorAll('.grid a').forEach(tile=>{
       const href=tile.getAttribute('href');
       const btn=document.createElement('button');
+      btn.type='button';
       btn.innerHTML='✔';btn.className='done-toggle';tile.append(btn);
-
-      /* restore */
-      if(localStorage.getItem('done_'+href)==='true') tile.classList.add('done');
-
-      /* toggle */
       btn.addEventListener('click',e=>{
         e.preventDefault();
-        tile.classList.toggle('done');
-        localStorage.setItem('done_'+href,tile.classList.contains('done'));
+        e.stopPropagation();
+        window.Marks.setDone(href, !window.Marks.isDone(href));
       });
     });
+    window.Marks.onChange(paintTiles);
+    paintTiles();
+    window.Marks.ready.then(paintTiles);
 
     /* ---- Auto-shrink return button ---- */
     document.addEventListener('scroll',()=>document.body.classList.
