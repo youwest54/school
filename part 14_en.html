@@ -133,6 +133,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "استطلاع الرأي العام", "en": "Opinion poll", "fr": "Sondage"}, {"ar": "الحكومة تفرض القانون", "en": "The government enforces the law", "fr": "Le gouvernement fait respecter la loi"}, {"ar": "عندما استولت الجيوش البريطانية على كيبيك عام 1759", "en": "When the British armies captured Quebec in 1759", "fr": "Quand les armées britanniques ont pris Québec en 1759"}, {"ar": "لقد وصخ قميصي", "en": "He stained my shirt", "fr": "Il a taché ma chemise"}, {"ar": "ضحك", "en": "Giggling", "fr": "Rire (en gloussant)"}, {"ar": "الم ارسلك لتذهبي وتنادي لجدك من أجل العشاء؟", "en": "Didn't I send you to call Grandpa for dinner?", "fr": "Ne t'ai-je pas envoyée appeler grand-père pour le dîner ?"}, {"ar": "عندما تقترب عطلة رأس السنة دائما نشعر بالسعادة", "en": "When New Year's holiday approaches, we always feel happy", "fr": "Quand les vacances du Nouvel An approchent, nous sommes toujours heureux."}, {"ar": "يرغبون في استغلال العديد من الأمور على حساب الناس", "en": "They want to exploit many things at the expense of the people", "fr": "Ils veulent exploiter beaucoup de choses aux dépens des gens"}, {"ar": "علم الفلك", "en": "Astronomy", "fr": "Astronomie"}, {"ar": "توسع الإمبراطورية المغولية", "en": "The expansion of the Mongol Empire", "fr": "L'expansion de l'Empire mongol"}, {"ar": "الفن يمكن أن يعكس منظور الفنان", "en": "Art can reflect the artist's perspective", "fr": "L'art peut refléter la perspective de l'artiste"}, {"ar": "تسبب تماطل المستمر في فقدان المواعيد النهائية في العمل", "en": "His constant procrastination led to missed deadlines at work.", "fr": "Sa procrastination constante a conduit à manquer les délais au travail."}, {"ar": "بطريقة قابلة للتنبؤ", "en": "In a predictable way", "fr": "D'une manière prévisible"}, {"ar": "كما يُمكن توقّعه", "en": "As can be expected", "fr": "Comme on peut s'y attendre"}, {"ar": "اتُّهم الوزير بأنه يحاول عرقلة محادثات السلام", "en": "The minister was accused of trying to stall the peace talks", "fr": "Le ministre a été accusé d'essayer de bloquer les pourparlers de paix."}];
@@ -144,18 +145,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -179,10 +184,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }

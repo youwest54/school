@@ -133,6 +133,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "معوج", "en": "Crooked", "fr": "Tordu"}, {"ar": "احتكار", "en": "Monopolization", "fr": "Monopole"}, {"ar": "غير صبر", "en": "Hang in there", "fr": "Tiens bon"}, {"ar": "كنحاول نقص من السكر", "en": "I'm trying to cut down on sugar", "fr": "J'essaie de réduire ma consommation de sucre"}, {"ar": "قاطعتك", "en": "I cut you in", "fr": "Je t'ai interrompu"}, {"ar": "بنية التحتية", "en": "Infrastructure", "fr": "Infrastructure"}, {"ar": "الاكتفاء الذاتي، تونس تهدف إلى الاكتفاء الذاتي في إنتاج القمح", "en": "Economic self-sufficiency. Tunisia aims for self-sufficiency in wheat production.", "fr": "Autosuffisance économique. La Tunisie vise l'autosuffisance en blé."}, {"ar": "لو كنت قد عملت بجد أكثر، لكنت نجحت في امتحانك", "en": "If you had worked harder, you would have passed your exam.", "fr": "Si tu avais travaillé plus dur, tu aurais réussi ton examen."}, {"ar": "كسل، تراخ، تبطّل", "en": "Inaction. His chronic laziness prevented him from completing his assignments on time.", "fr": "Inaction. Sa paresse chronique l'a empêché de terminer ses tâches à temps."}, {"ar": "هذا الوقت الممتع لم يدم طويلاً", "en": "This pleasant time didn't last long", "fr": "Ce moment agréable n'a pas duré longtemps"}, {"ar": "هذا البنتهاوس يحتوي على نظام تقني متطور جداً", "en": "This penthouse has a very sophisticated technology system.", "fr": "Ce penthouse dispose d'un système technologique très sophistiqué."}, {"ar": "وجهك قاسح", "en": "You got audacity", "fr": "Tu as du culot"}, {"ar": "تسبب تماطله المستمر في فقدان المواعيد النهائية في العمل", "en": "His constant procrastination led to missed deadlines at work.", "fr": "Sa procrastination constante a entraîné des échéances manquées au travail."}, {"ar": "جريء", "en": "Daring", "fr": "Audacieux"}, {"ar": "حماسي", "en": "Enthusiastic", "fr": "Enthousiaste"}, {"ar": "تسليط الضوء", "en": "Shine light", "fr": "Mettre en lumière"}, {"ar": "تنمر", "en": "Bullying", "fr": "Harcèlement"}, {"ar": "بطريقة قابلة للتنبؤ", "en": "In a predictable way", "fr": "De manière prévisible"}, {"ar": "كما هو متوقع", "en": "As can be expected", "fr": "Comme on peut s'y attendre"}, {"ar": "الطريقة التي توقعها الجميع", "en": "The way everyone expected", "fr": "La façon dont tout le monde s'y attendait"}, {"ar": "أين أقيمت حفلة جوائز الموسيقى الأمريكية لعام 2020؟", "en": "Where did the American Music Awards (AMAs) take place in 2020?", "fr": "Où ont eu lieu les American Music Awards en 2020 ?"}, {"ar": "تم بناء المعبد القديم لتقديس الآلهة", "en": "The ancient temple was built for the sanctification of the gods.", "fr": "Le temple ancien a été construit pour la sanctification des dieux."}, {"ar": "الجشع", "en": "Greed", "fr": "Avarice"}, {"ar": "غضب", "en": "Anger", "fr": "Colère"}, {"ar": "أدوات", "en": "Tools", "fr": "Outils"}, {"ar": "العقول النيرة", "en": "Bright minds", "fr": "Les esprits brillants"}, {"ar": "الاستفزاز", "en": "Provocation", "fr": "Provocation"}, {"ar": "افتراضي", "en": "Virtual", "fr": "Virtuel"}, {"ar": "تسويق", "en": "Marketing", "fr": "Marketing"}];
@@ -144,18 +145,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -179,10 +184,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }

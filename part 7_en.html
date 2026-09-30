@@ -133,6 +133,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "دقيق", "en": "Accurate", "fr": "Précis"}, {"ar": "ضالم أو مظلوم", "en": "Oppressor or oppressed", "fr": "Oppresseur ou opprimé"}, {"ar": "حضانة الأطفال بعد الطلاق", "en": "Child Custody", "fr": "La garde des enfants après divorce"}, {"ar": "مجاري", "en": "Sewers", "fr": "Égouts"}, {"ar": "هضم", "en": "Digestion", "fr": "Digestion"}, {"ar": "أنا كنت على وشك أن أصاب بسيارة", "en": "I almost got hit by a car.", "fr": "J'étais sur le point de me faire renverser"}, {"ar": "كنت قريبًا من أن أصاب بسيارة", "en": "I was this close to being hit by a car.", "fr": "J'étais si près d'être percuté par une voiture"}, {"ar": "مغترب", "en": "Expatriate", "fr": "Expatrié"}, {"ar": "كرة القدم يمكن أن تزيد الناتج المحلي", "en": "Football can increase GDP by 2% to 5%.", "fr": "Le football peut augmenter le PIB de 2% à 5%."}, {"ar": "أين يمكن أن أجد ذلك؟", "en": "Where can I find it?", "fr": "Où est-ce que je peux en trouver ?"}, {"ar": "تنوع", "en": "Variety", "fr": "Variété"}, {"ar": "أبعده قدر الإمكان", "en": "Keep him as far away as possible", "fr": "Éloigne-le autant que possible"}, {"ar": "مراقبة الأنشطة", "en": "Monitoring activities", "fr": "Suivi des activités"}, {"ar": "جرح", "en": "Wound", "fr": "Blessure"}];
@@ -144,18 +145,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -179,10 +184,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }

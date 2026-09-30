@@ -133,6 +133,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "إيطاليا لديها أكبر عدد من السكان المسنين في أوروبا ، حيث يبلغ عدد السكان حوالي 23٪ من السكان ، وفقًا لصحيفة نيويورك تايمز", "en": "Italy has the oldest population in Europe, with about 23% of residents 65 or older, according to The New York Times", "fr": "L'Italie a la population la plus âgée d'Europe, avec environ 23% des habitants âgés de 65 ans ou plus, selon le New York Times"}, {"ar": "يبدو أن المشتبه به خدع عددا من كبار السن.", "en": "The suspect apparently conned a number of elderly people.", "fr": "Le suspect a apparemment escroqué un certain nombre de personnes âgées."}, {"ar": "الأنانية", "en": "Selfishness", "fr": "Égoïsme"}, {"ar": "في مدينتي، تمتلك شركة واحدة احتكارًا لتقديم خدمة الإنترنت.", "en": "In my city, one company has a monopoly on providing internet service.", "fr": "Dans ma ville, une entreprise a le monopole du service fournissant Internet."}];
@@ -144,18 +145,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -179,10 +184,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }

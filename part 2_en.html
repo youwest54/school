@@ -133,6 +133,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "من حين إلى آخر", "en": "Occasional", "fr": "Occasionnel"}, {"ar": "غير رسمي", "en": "Casual", "fr": "Informel"}, {"ar": "شحال دابا من كيلومتر غادي نكونوا ضربنا دابا", "en": "How many miles have we driven by now?", "fr": "Combien de kilomètres avons-nous parcouru maintenant ?"}, {"ar": "كان كيجري بكل قصر جهده", "en": "He was running as fast as he could", "fr": "Il courait aussi vite qu'il pouvait"}, {"ar": "ألم أرسلك لتذهبي وتنادي لجدك من أجل العشاء", "en": "Didn't I send you to call Grandpa for dinner?", "fr": "Ne t'ai-je pas envoyée appeler grand-père pour le dîner ?"}, {"ar": "ذنوب", "en": "Sins", "fr": "Péchés"}, {"ar": "استطلاع الرأي العام", "en": "Opinion poll", "fr": "Sondage d'opinion"}, {"ar": "هذا الفيروس قد أظهر لنا العديد من الأمور", "en": "This virus has shown us a lot of things", "fr": "Ce virus nous a montré beaucoup de choses"}, {"ar": "حسنة", "en": "Good deed", "fr": "Bonne action"}, {"ar": "التفاهة", "en": "Insignificance", "fr": "Insignifiance"}, {"ar": "الحكومة تفرض القانون", "en": "The government enforces the law", "fr": "Le gouvernement applique la loi"}, {"ar": "إنهم يحاولون تحريف وقائع تاريخية", "en": "They intend to distort historical facts", "fr": "Ils cherchent à déformer les faits historiques"}, {"ar": "عندما استولت الجيوش البريطانية على كيبيك عام 1759", "en": "When the British armies captured Quebec in 1759", "fr": "Lorsque les armées britanniques ont capturé Québec en 1759"}, {"ar": "عندما تقترب عطلة رأس السنة دائماً نشعر بالسعادة", "en": "When New Year's holiday approaches, we always feel happy", "fr": "Quand les vacances du Nouvel An approchent, nous ressentons toujours de la joie"}, {"ar": "يرغبون في استغلال العديد من الأمور على حساب الناس", "en": "They want to exploit many things at the expense of the people", "fr": "Ils veulent exploiter de nombreuses choses au détriment des gens"}, {"ar": "تجاهل شخص بازدراء: الرئيس تجاهل كل اقتراح قدمه توم", "en": "The boss snubbed every suggestion Tom made", "fr": "Le patron a ignoré toutes les suggestions faites par Tom"}, {"ar": "علم الفلك", "en": "Astronomy", "fr": "Astronomie"}, {"ar": "صندوق النقد الدولي", "en": "International Monetary Fund", "fr": "Fonds monétaire international"}, {"ar": "جلد", "en": "Leather", "fr": "Cuir"}, {"ar": "شارع ضيق", "en": "Narrow street", "fr": "Rue étroite"}, {"ar": "أجندة سياسية معينة", "en": "Political agenda", "fr": "Agenda politique"}];
@@ -144,18 +145,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -179,10 +184,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }

@@ -125,6 +125,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["fr", "nl"];
 const CARDS = [{"fr": "Peux-tu me dire combien tu as besoin ?", "nl": "Kun je me vertellen hoeveel je nodig hebt."}, {"fr": "Je suis parti à l'école.", "nl": "Ik ben naar school gegaan."}, {"fr": "Non, je ne suis pas parti à l'école.", "nl": "Nee, ik ben niet naar school gegaan."}, {"fr": "J'ai parlé avec lui.", "nl": "Ik heb met hem gesproken."}, {"fr": "Non, je n'ai pas parlé avec lui.", "nl": "Nee, ik heb niet met hem gesproken."}, {"fr": "J'ai bu du jus d'orange.", "nl": "Ik heb sinaasappelsap gedronken."}, {"fr": "Non, je n'ai pas bu de jus d'orange.", "nl": "Nee, ik heb geen sinaasappelsap gedronken."}, {"fr": "J'ai bu.", "nl": "Ik heb gedronken."}, {"fr": "Non, je n'ai pas bu.", "nl": "Nee, ik heb niet gedronken."}, {"fr": "J'ai mangé.", "nl": "Ik heb gegeten."}, {"fr": "Non, je n'ai pas mangé.", "nl": "Nee, ik heb niet gegeten."}, {"fr": "J'ai fait ça.", "nl": "Ik heb dat gedaan."}, {"fr": "Non, je n'ai pas fait ça.", "nl": "Nee, ik heb dat niet gedaan."}, {"fr": "J'ai fait.", "nl": "Ik heb gedaan."}, {"fr": "Je n'ai rien fait.", "nl": "Ik heb niets gedaan."}, {"fr": "J'ai mangé une pomme.", "nl": "Ik heb een appel gegeten."}, {"fr": "Non, je n'ai pas mangé de pomme.", "nl": "Nee, ik heb geen appel gegeten."}, {"fr": "J'ai décidé.", "nl": "Ik heb besloten."}, {"fr": "Je n'ai pas décidé.", "nl": "Ik heb niet besloten."}, {"fr": "Je n'ai pas encore décidé.", "nl": "Ik heb nog niet besloten."}, {"fr": "Ça c'est vrai.", "nl": "Dat is waar."}, {"fr": "Non, ça ce n'est pas vrai.", "nl": "Nee, dat is niet waar."}, {"fr": "Tu peux m'aider.", "nl": "Je kunt me helpen."}, {"fr": "Non, tu ne peux pas m'aider.", "nl": "Nee, je kunt me niet helpen."}, {"fr": "Je ne sais pas.", "nl": "Ik weet het niet."}, {"fr": "Non, tu ne m'aides pas.", "nl": "Nee, je helpt me niet."}, {"fr": "Tu m'as aidé.", "nl": "Je hebt me geholpen."}, {"fr": "Non, tu ne m'as pas aidé.", "nl": "Nee, je hebt me niet geholpen."}, {"fr": "J'ai fait beaucoup de choses.", "nl": "Ik heb veel dingen gedaan."}, {"fr": "Je n'ai rien fait.", "nl": "Ik heb niets gedaan."}, {"fr": "Je dois l'améliorer.", "nl": "Ik moet het verbeteren."}, {"fr": "Je sais.", "nl": "Ik weet het."}, {"fr": "Je ne sais pas.", "nl": "Ik weet het niet."}];
@@ -136,18 +137,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -171,10 +176,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }

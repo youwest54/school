@@ -125,6 +125,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["fr", "nl"];
 const CARDS = [{"fr": "Ou habite-tu ?", "nl": "Waar woon je?"}, {"fr": "J'aimerais savoir", "nl": "Ik wil graag weten"}, {"fr": "J'ai un rendez-vous aujourd'hui à 15 heures", "nl": "Ik heb vandaag om 15 uur een afspraak"}, {"fr": "J'ai un RDV", "nl": "Ik heb een afspraak"}, {"fr": "J'ai un vol à 10h30", "nl": "Ik heb een vlucht om 10.30 uur"}, {"fr": "Ik moet vertrekken", "nl": "Il faut que je parte"}, {"fr": "Il faut que je parte au travail", "nl": "Ik moet naar mijn werk vertrekken"}, {"fr": "J'ai besoin du DXF s'il vous plaît", "nl": "Ik heb de DXF nodig, alstublieft"}, {"fr": "J'ai une chose à dire", "nl": "Ik heb een ding om te zeggen"}, {"fr": "J'ai annulé mon voyage", "nl": "Ik heb mijn reis geannuleerd"}, {"fr": "Tout est stupide", "nl": "Alles is stom"}, {"fr": "Puis-je en avoir deux de ceux-ci ?", "nl": "Mag ik er twee van die hebben?"}, {"fr": "Puis-je avoir deux kilos de poulet, s'il vous plaît ?", "nl": "Mag ik twee kilo kip, alstublieft?"}, {"fr": "Avez-vous des œufs dans votre magasin ?", "nl": "Heeft u eieren in uw winkel?"}, {"fr": "Je cherche du sel dans votre magasin.", "nl": "Ik zoek zout in uw winkel."}, {"fr": "Je cherche du sel dans votre magasin. Pourriez-vous me dire où je peux le trouver ?", "nl": "Ik zoek zout in uw winkel. Kunt u mij zeggen waar ik het kan vinden?"}, {"fr": "Je ne peux pas le trouver.", "nl": "Ik kan het niet vinden"}, {"fr": "J’arrive pas à trouver où il est", "nl": "Ik kan niet vinden waar het is"}, {"fr": "Où puis-je trouver le sel dans votre magasin ?", "nl": "Waar kan ik het zout in jouw winkel vinden?"}, {"fr": "Où puis-je trouver le sel ?", "nl": "Waar kan ik het zout vinden?"}];
@@ -136,18 +137,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -171,10 +176,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }

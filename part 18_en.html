@@ -133,6 +133,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "ينتقدون طريقتهم في التعبير عن أنفسهم", "en": "They criticize their way of expressing themselves", "fr": "En critiquant leur façon de s'exprimer"}, {"ar": "من الواضح ، لقد وجدت قانون نوفمبر 2019 منطقيًا مقارنة بالقانون المعلن. إذا كنت في قائمة الصفقات تحت الطلب ، لم يكن لديك سوى 6 أشهر للعمل قبل تقديم طلبك وانتقل الدعوى من الساعة 1800 إلى 900 ساعة", "en": "\"It's clear, I found the November 2019 law logical compared to the one announced. If you were in the list of in-demand jobs, you only had 6 months to work before applying, and the threshold of 1800 hours was reduced to 900 hours.\"", "fr": "C'est clair, je trouvais la loi de novembre 2019 logique par rapport à celle annoncée. Si tu étais dans la liste de métiers en demande tu avais que 6 mois à travailler avant de faire ta demande et le seuil de 1800h passait à 900h."}, {"ar": "هذا التصريح قد يسمح لهم باكتساب الخبرة اللازمة للعمل. ومع ذلك، فإن هذا التغيير قد يؤخر تقديم الطلب من خريجي كيبيك لمدة سنة أو سنتين", "en": "This permit might allow them to gain the necessary job experience. However, this change would delay by one or two years the possibility for Quebec graduates to apply for PEQ.", "fr": "Ce permis pourrait, on l'espère, leur permettre d'acquérir l'expérience nécessaire d'emploi. Néanmoins, ce changement retarderait d'un ou deux ans la possibilité pour les diplômés du Québec de déposer une demande de PEQ."}, {"ar": "صندوق مالي", "en": "Financial fund", "fr": "Fonds financier"}, {"ar": "ثمين", "en": "Precious", "fr": "Précieux"}, {"ar": "تجميع", "en": "Pooling (of resources)", "fr": "Mutualisation"}, {"ar": "يجب أن يتم تقسيمه بالتساوي في العالم", "en": "Must be divided equally in the world", "fr": "Doit être divisé également dans le monde"}, {"ar": "من الوهم", "en": "Of illusion", "fr": "D'illusion"}, {"ar": "تهجئه", "en": "Spell", "fr": "Épeler"}, {"ar": "مقسم", "en": "Split", "fr": "Divisé"}, {"ar": "الاتحاد الأوروبي مات منذ انضمام الدول الشيوعية السابقة", "en": "The European Union has died since the accession of the former communist countries", "fr": "L'Union européenne est morte depuis l'adhésion des anciens pays communistes"}, {"ar": "لا يبدو أن حالتك تثير القلق.", "en": "Your condition doesn’t seem concerning.", "fr": "Votre état ne semble pas préoccupant."}, {"ar": "التنافس", "en": "Rivalry", "fr": "La rivalité"}, {"ar": "الركود", "en": "Recession", "fr": "Récession"}, {"ar": "جبنة مبشورة", "en": "Grated cheese", "fr": "Fromage râpé"}, {"ar": "لقد أظهر لنا هذا الفيروس الكثير", "en": "This virus has shown us a lot", "fr": "Ce virus nous a montré beaucoup"}, {"ar": "السميد", "en": "Semolina", "fr": "La semoule"}, {"ar": "الطحين", "en": "Flour", "fr": "Farine"}, {"ar": "هناك تنافس كبير بين الشركات في سوق التكنولوجيا.", "en": "There is a strong rivalry between companies in the tech market.", "fr": "Il y a une forte concurrence entre les entreprises sur le marché technologique."}, {"ar": "الخصومة بين الفريقين بدأت منذ سنوات.", "en": "The rivalry between the two teams began years ago.", "fr": "La rivalité entre les deux équipes a commencé il y a des années."}, {"ar": "العداء بين الجارين أدى إلى مشاكل كثيرة.", "en": "The rivalry between the neighbors led to many problems.", "fr": "L'hostilité entre les voisins a causé de nombreux problèmes."}];
@@ -144,18 +145,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -179,10 +184,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }

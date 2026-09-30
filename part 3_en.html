@@ -133,6 +133,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "أنا شنو غانستافد", "en": "What's in it for me", "fr": "Qu'est-ce que j'y gagne ?"}, {"ar": "احترم نفسك", "en": "Behave yourself", "fr": "Comporte-toi bien"}, {"ar": "لا تيأس", "en": "Don't despair", "fr": "Ne désespère pas"}, {"ar": "أشعر بالغثيان", "en": "I feel nauseous", "fr": "J'ai la nausée"}, {"ar": "أنا صريح", "en": "I'm sincere", "fr": "Je suis sincère"}, {"ar": "أنت سندي", "en": "You, you are my rock", "fr": "Tu es mon pilier"}, {"ar": "لم يخلفنا الحظ", "en": "No such luck", "fr": "Pas de chance"}, {"ar": "ذات مرة", "en": "Once upon a time", "fr": "Il était une fois"}, {"ar": "كذب والدته عندما كانت تتحدث", "en": "He contradicted his mother when she was talking", "fr": "Il a contredit sa mère quand elle parlait"}, {"ar": "طريقة تفكير سطحية جداً", "en": "A very shallow way of thinking, it sees things as mere play", "fr": "Une manière de penser très superficielle, elle voit les choses comme un simple jeu"}, {"ar": "تحديد", "en": "Delineated", "fr": "Délimité"}, {"ar": "توسع الإمبراطورية المغولية", "en": "The expansion of the Mongol Empire", "fr": "L'expansion de l'empire mongol"}, {"ar": "عيب", "en": "Flaw", "fr": "Défaut"}, {"ar": "درع بشري", "en": "Human shield", "fr": "Bouclier humain"}];
@@ -144,18 +145,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -179,10 +184,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }

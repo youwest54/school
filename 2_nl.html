@@ -125,6 +125,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["fr", "nl"];
 const CARDS = [{"fr": "Je ne savais pas.", "nl": "Ik wist het niet."}, {"fr": "Je veux savoir.", "nl": "Ik wil het weten."}, {"fr": "Je veux.", "nl": "Ik wil."}, {"fr": "Je ne veux pas.", "nl": "Ik wil niet."}, {"fr": "Je ne voulais pas.", "nl": "Ik wilde niet."}, {"fr": "J'ai besoin de savoir combien tu en as besoin.", "nl": "Ik moet weten hoeveel je nodig hebt."}, {"fr": "Je n'ai pas décidé quand je dois commencer.", "nl": "Ik heb niet besloten wanneer ik moet beginnen."}, {"fr": "Je n'ai pas décidé ce que je dois faire.", "nl": "Ik heb niet besloten wat ik moet doen."}, {"fr": "Tu dois me dire.", "nl": "Je moet het me vertellen."}, {"fr": "Puis-je avoir le fichier DXF de cette commande ?", "nl": "Kan ik het DXF-bestand van deze bestelling krijgen?"}, {"fr": "J'ai mangé beaucoup de choses.", "nl": "Ik heb veel dingen gegeten."}, {"fr": "Quand commences-tu ?", "nl": "Wanneer begin je?"}, {"fr": "Je n'ai pas encore décidé lequel je dois choisir.", "nl": "Ik heb nog niet besloten welke ik moet kiezen."}, {"fr": "J'ai fait beaucoup de choses dernièrement.", "nl": "Ik heb vindage veel dingen gedan."}, {"fr": "Je n'ai pas fait beaucoup de choses dernièrement.", "nl": "Ik heb vidage niet veel dingen gedan."}, {"fr": "Je veux savoir combien ça coûte.", "nl": "Ik wil weten hoeveel dit kost."}, {"fr": "Pourquoi ne m'aides-tu pas ?", "nl": "Waarom help je me niet ?"}, {"fr": "Je n'ai rien.", "nl": "Ik heb niks."}];
@@ -136,18 +137,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -171,10 +176,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }
