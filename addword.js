@@ -23,7 +23,15 @@
     ".extra-card .remember-button.remembered{background:#43a047;color:#fff}",
     ".hold-note{text-align:center;color:#666;font-size:.9rem;margin:.35rem 0 0}",
     ".flashcard.hold-delete,.extra-card.hold-delete{box-shadow:inset 0 0 0 4px #c62828;background:#ffebee}",
-    "@media(prefers-color-scheme:dark){#add-word-form,.extra-card{background:#1c1c1e;color:#e4e4e4;border-color:#333}#add-word-form input{background:#111;color:#eee;border-color:#444}.hold-note{color:#bbb}.flashcard.hold-delete,.extra-card.hold-delete{background:#3a1d1d}}"
+    "#sure-delete{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1100;display:flex;align-items:center;justify-content:center;padding:1rem}",
+    "#sure-delete[hidden]{display:none}",
+    ".sure-box{background:#fff;color:#222;border-radius:12px;padding:1.2rem;width:min(92vw,340px);text-align:center}",
+    ".sure-box p{font-size:1.15rem;margin-bottom:1rem}",
+    ".sure-actions{display:flex;gap:.6rem}",
+    ".sure-actions button{flex:1;font-size:1.1rem;padding:.75rem;border-radius:8px;border:none;cursor:pointer}",
+    "#sure-yes{background:#c62828;color:#fff}",
+    "#sure-no{background:#eee;color:#222}",
+    "@media(prefers-color-scheme:dark){#add-word-form,.extra-card,.sure-box{background:#1c1c1e;color:#e4e4e4;border-color:#333}#add-word-form input{background:#111;color:#eee;border-color:#444}.hold-note{color:#bbb}.flashcard.hold-delete,.extra-card.hold-delete{background:#3a1d1d}#sure-no{background:#333;color:#eee}}"
   ].join("");
   document.head.appendChild(style);
 
@@ -66,7 +74,7 @@
   form.append(fields, actions, error);
   var note = document.createElement("p");
   note.className = "hold-note";
-  note.textContent = "Hold a card to delete it. It will ask first.";
+  note.textContent = "Hold a card. Then choose Yes or No.";
   bar.append(openBtn, note, form);
   var heading = document.querySelector("h1");
   if (heading && heading.parentNode) heading.parentNode.insertBefore(bar, heading.nextSibling);
@@ -197,49 +205,97 @@
   }
 
   var hold = null;
+  var asking = null;
   var deleteHeld = function () { return Promise.resolve(); };
+  var sure = document.createElement("div");
+  var sureBox = document.createElement("div");
+  var sureText = document.createElement("p");
+  var sureActions = document.createElement("div");
+  var sureYes = document.createElement("button");
+  var sureNo = document.createElement("button");
+  sure.id = "sure-delete";
+  sure.hidden = true;
+  sureBox.className = "sure-box";
+  sureText.textContent = "Are you sure you want to delete this card?";
+  sureActions.className = "sure-actions";
+  sureYes.id = "sure-yes";
+  sureYes.type = "button";
+  sureYes.textContent = "Yes";
+  sureNo.id = "sure-no";
+  sureNo.type = "button";
+  sureNo.textContent = "No";
+  sureActions.append(sureNo, sureYes);
+  sureBox.append(sureText, sureActions);
+  sure.appendChild(sureBox);
+  document.body.appendChild(sure);
+
+  function closeAsk() {
+    sure.hidden = true;
+    if (asking) asking.classList.remove("hold-delete");
+    asking = null;
+  }
+
+  function askSure(card) {
+    if (!card || asking) return;
+    asking = card;
+    card.classList.add("hold-delete");
+    card.dataset.held = "1";
+    sure.hidden = false;
+  }
+
+  sureYes.onclick = function (e) {
+    var card = asking;
+    e.preventDefault();
+    e.stopPropagation();
+    closeAsk();
+    if (!card) return;
+    deleteHeld(card).catch(function () {
+      error.textContent = "Could not delete the card. Check the internet and try again.";
+    });
+  };
+  sureNo.onclick = function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    closeAsk();
+  };
 
   function clearHold() {
     if (!hold) return;
     clearTimeout(hold.timer);
-    hold.card.classList.remove("hold-delete");
+    if (!asking || asking !== hold.card) hold.card.classList.remove("hold-delete");
     hold = null;
   }
 
   container.addEventListener("pointerdown", function (e) {
     var card = e.target.closest(".flashcard, .extra-card");
-    if (!card || e.target.closest("button, a, input, select") || (e.button && e.button !== 0)) return;
+    if (asking || !card || e.target.closest("button, a, input, select") || (e.button && e.button !== 0)) return;
     clearHold();
     hold = {
       card: card,
       x: e.clientX,
       y: e.clientY,
-      armed: false,
+      started: Date.now(),
       timer: setTimeout(function () {
         if (!hold || hold.card !== card) return;
-        hold.armed = true;
-        card.classList.add("hold-delete");
-      }, 650)
+        clearHold();
+        askSure(card);
+      }, 500)
     };
   });
   window.addEventListener("pointermove", function (e) {
-    if (!hold || hold.armed) return;
+    if (!hold) return;
     if (Math.abs(e.clientX - hold.x) > 14 || Math.abs(e.clientY - hold.y) > 14) clearHold();
   });
-  window.addEventListener("pointerup", function () {
+  window.addEventListener("pointerup", clearHold);
+  window.addEventListener("pointercancel", function () {
     if (!hold) return;
     var card = hold.card;
-    var armed = hold.armed;
-    clearHold();
-    if (!armed) return;
-    card.dataset.held = "1";
-    if (!confirm("Are you sure you want to delete this card?")) return;
-    deleteHeld(card).catch(function () {
-      card.dataset.held = "";
-      error.textContent = "Could not delete the card. Check the internet and try again.";
-    });
+    var elapsed = Date.now() - hold.started;
+    clearTimeout(hold.timer);
+    hold = null;
+    if (elapsed >= 350) askSure(card);
+    else card.classList.remove("hold-delete");
   });
-  window.addEventListener("pointercancel", clearHold);
   container.addEventListener("contextmenu", function (e) {
     if (e.target.closest(".flashcard, .extra-card")) e.preventDefault();
   });
