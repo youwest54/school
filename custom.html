@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Flashcards</title>
+<style>
+:root{--pad:clamp(.75rem,3vw,1rem);--fs-body:clamp(1rem,4vw,1.15rem);--fs-h1:clamp(1.4rem,6vw,1.8rem)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:#fafafa;color:#333;margin:0 auto;padding:var(--pad);padding-bottom:8rem;
+}
+h1{text-align:center;margin-bottom:.35rem;font-size:var(--fs-h1)}
+.tools{text-align:center;margin-bottom:.8rem}
+.tools a{color:#1976d2;text-decoration:none;font-size:1.05rem}
+.empty{text-align:center;color:#555;margin-top:2rem}
+.flashcard{
+  background:#fff;border:1px solid #ddd;border-radius:12px;padding:calc(var(--pad)*1.4);
+  margin-bottom:1.2rem;position:relative;touch-action:manipulation;min-height:200px;cursor:pointer;
+}
+.flashcard.remembered{border-color:#43a047}
+.remembered-badge{position:absolute;top:8px;right:12px;background:#43a047;color:#fff;border-radius:8px;padding:2px 6px;font-size:.75rem;display:none}
+.flashcard.remembered .remembered-badge{display:block}
+.content{font-size:var(--fs-body);min-height:7em;display:flex;align-items:center;justify-content:center;margin-bottom:.75rem;text-align:center}
+.buttons{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.buttons button{flex:1 1 30%;padding:.5rem;font-size:1rem;border:none;border-radius:8px;cursor:pointer}
+.remember-button{background:#eee;color:#333}
+.remember-button.remembered{background:#43a047;color:#fff}
+.play-button{flex:none;width:4rem;height:4rem;padding:0;border:none;border-radius:50%;font-size:2.4rem;background:#fff;color:#1976d2;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:1000}
+.modal-content{background:#fff;border-radius:12px;padding:1.2rem;max-width:90%;width:320px;max-height:85vh;overflow:auto}
+.modal-content h2{margin-bottom:.5rem;font-size:1.2rem}
+.modal-content label{display:block;margin:.5rem 0 .25rem}
+.modal-content select,.modal-content input[type=range]{width:100%}
+.modal-content .close{float:right;font-size:1.2rem;cursor:pointer}
+.lang-settings{padding:1rem 0;margin-bottom:.5rem}
+#settings-button,#flip-all-button{
+  position:fixed;bottom:1rem;z-index:1001;background:#fff;border:none;border-radius:50%;
+  width:4rem;height:4rem;padding:0;font-size:2.5rem;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)
+}
+#flip-all-button{right:6rem}#settings-button{right:1rem}
+#return-button{
+  position:fixed;bottom:calc(env(safe-area-inset-bottom,0) + 1rem);left:calc(env(safe-area-inset-left,0) + 1rem);
+  width:10rem;height:10rem;font-size:4rem;border:none;border-radius:50%;background:#1976d2;color:#fff;
+  display:flex;align-items:center;justify-content:center;text-decoration:none;
+  box-shadow:0 3px 8px rgba(0,0,0,.25);z-index:1002;
+  transition:transform .25s ease,opacity .25s ease;
+}
+body.scrolled #return-button{transform:scale(.85);opacity:.4}
+@media(max-width:414px){
+  .flashcard{min-height:160px}
+  .buttons button{flex:1 1 46%;font-size:.9rem;padding:.4rem}
+  .play-button{width:3.2rem;height:3.2rem;font-size:2.2rem}
+  #return-button{width:7rem;height:7rem;font-size:3rem}
+}
+@media(prefers-color-scheme:dark){
+  body{background:#111;color:#e4e4e4}
+  .flashcard,.modal-content{background:#1c1c1e;border-color:#333}
+}
+</style>
+</head>
+<body>
+<h1 id="title">Flashcards</h1>
+<p class="tools"><a id="edit-link" href="new.html">Edit words</a></p>
+<button id="flip-all-button" title="Flip all cards">🔄</button>
+<button id="settings-button" title="Settings">⚙️</button>
+<div id="card-container"></div>
+<div id="settings-modal" class="modal"><div class="modal-content">
+  <span class="close" title="Close">×</span><h2>Voice Settings</h2>
+  <div id="voice-box"></div>
+</div></div>
+<a id="return-button" href="index.html" title="Return">←</a>
+<script src="marks.js?v=6"></script>
+<script src="pages.js?v=1"></script>
+<script src="voice.js?v=4"></script>
+<script>
+var LANGS = ["en"];
+var CARDS = [];
+var remembered = {};
+var voiceSettings = {};
+var pageId = (new URLSearchParams(location.search).get("id") || "").replace(/[^a-z0-9]/g, "");
+
+function homeFor(track){
+  if (track === "es") return "index_es.html";
+  if (track === "nl") return "index_nl.html";
+  return "index_en.html";
+}
+
+function saveRemembered(){ window.Marks.writeCards(remembered); }
+
+function paintRemembered(){
+  remembered = window.Marks.cardsForPage();
+  document.querySelectorAll(".flashcard").forEach(function (card) {
+    var st = !!remembered[card.dataset.id];
+    var rem = card.querySelector(".remember-button");
+    card.classList.toggle("remembered", st);
+    if (rem) {
+      rem.classList.toggle("remembered", st);
+      rem.textContent = st ? "Unmark Remembered" : "Mark as Remembered";
+    }
+  });
+}
+
+function createCard(data){
+  var card = document.createElement("div");
+  var badge = document.createElement("span");
+  var content = document.createElement("div");
+  var btns = document.createElement("div");
+  var rem = document.createElement("button");
+  var play = document.createElement("button");
+  card.className = "flashcard";
+  card.dataset.side = "0";
+  card.dataset.id = data.id;
+  badge.className = "remembered-badge";
+  badge.textContent = "Remembered ✓";
+  content.className = "content";
+  function render(){ content.textContent = data[LANGS[+card.dataset.side]] || ""; }
+  render();
+  card.onclick = function (e) {
+    if (e.target.closest("button")) return;
+    card.dataset.side = String((+card.dataset.side + 1) % LANGS.length);
+    render();
+  };
+  btns.className = "buttons";
+  rem.className = "remember-button";
+  function apply(st){
+    card.classList.toggle("remembered", st);
+    rem.classList.toggle("remembered", st);
+    rem.textContent = st ? "Unmark Remembered" : "Mark as Remembered";
+  }
+  apply(!!remembered[data.id]);
+  rem.onclick = function () {
+    remembered[data.id] = !remembered[data.id];
+    apply(remembered[data.id]);
+    saveRemembered();
+  };
+  play.className = "play-button";
+  play.textContent = "🔊";
+  play.onclick = function () {
+    var lang = LANGS[+card.dataset.side];
+    window.FlashVoice.speak(data[lang] || "", lang, voiceSettings[lang]);
+  };
+  card.append(badge, content, btns);
+  btns.append(rem, play);
+  return card;
+}
+
+function buildVoice(){
+  var box = document.getElementById("voice-box");
+  box.innerHTML = "";
+  LANGS.forEach(function (lang) {
+    var block = document.createElement("div");
+    var name = document.createElement("label");
+    var select = document.createElement("select");
+    var rateLabel = document.createElement("label");
+    var rate = document.createElement("input");
+    var rateValue = document.createElement("span");
+    var pitchLabel = document.createElement("label");
+    var pitch = document.createElement("input");
+    var pitchValue = document.createElement("span");
+    block.className = "lang-settings";
+    block.dataset.lang = lang;
+    name.textContent = (window.Pages.names[lang] || lang) + " voice:";
+    select.className = "voice-select";
+    rate.type = "range";
+    rate.className = "rate-range";
+    rate.min = "0.5";
+    rate.max = "2";
+    rate.step = "0.1";
+    pitch.type = "range";
+    pitch.className = "pitch-range";
+    pitch.min = "0";
+    pitch.max = "2";
+    pitch.step = "0.1";
+    rateLabel.append("Rate: ", rateValue);
+    pitchLabel.append("Pitch: ", pitchValue);
+    block.append(name, select, rateLabel, rate, pitchLabel, pitch);
+    box.appendChild(block);
+    select.onchange = function (e) { voiceSettings[lang].voiceURI = e.target.value; };
+    rate.oninput = function (e) {
+      rateValue.textContent = e.target.value;
+      voiceSettings[lang].rate = +e.target.value;
+    };
+    pitch.oninput = function (e) {
+      pitchValue.textContent = e.target.value;
+      voiceSettings[lang].pitch = +e.target.value;
+    };
+    rate.value = voiceSettings[lang].rate;
+    pitch.value = voiceSettings[lang].pitch;
+    rateValue.textContent = rate.value;
+    pitchValue.textContent = pitch.value;
+  });
+}
+
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
+  document.querySelectorAll(".lang-settings").forEach(function (cfg) {
+    var lang = cfg.dataset.lang;
+    var sel = cfg.querySelector(".voice-select");
+    var list = window.FlashVoice ? window.FlashVoice.voicesFor(lang) : [];
+    sel.innerHTML = "";
+    sel.append(new Option("Best AI voice (default)", ""));
+    list.forEach(function (v) { sel.append(new Option(v.name + " (" + v.lang + ")", v.voiceURI)); });
+    sel.value = (voiceSettings[lang] && voiceSettings[lang].voiceURI) || "";
+  });
+}
+
+function render(page){
+  var cont = document.getElementById("card-container");
+  document.getElementById("title").textContent = page.title || "Flashcards";
+  document.title = page.title || "Flashcards";
+  document.getElementById("edit-link").href = "new.html?id=" + page.id;
+  document.getElementById("return-button").href = homeFor(page.track);
+  LANGS = (window.Pages.tracks[page.track] && window.Pages.tracks[page.track].langs) || ["en"];
+  CARDS = page.cards || [];
+  voiceSettings = {};
+  LANGS.forEach(function (lang) { voiceSettings[lang] = { voiceURI: null, rate: 0.9, pitch: 1 }; });
+  try { Object.assign(voiceSettings, JSON.parse(localStorage.getItem("flashcardVoiceSettings") || "{}")); } catch (e) {}
+  window.voiceSettings = voiceSettings;
+  buildVoice();
+  populateVoiceSelects();
+  remembered = window.Marks.cardsForPage();
+  cont.innerHTML = "";
+  if (!CARDS.length) {
+    cont.innerHTML = '<p class="empty">No words yet. Tap Edit words to add some.</p>';
+    return;
+  }
+  CARDS.forEach(function (card) { cont.append(createCard(card)); });
+}
+
+var modal = document.getElementById("settings-modal");
+document.getElementById("settings-button").onclick = function () {
+  populateVoiceSelects();
+  modal.style.display = "flex";
+};
+modal.querySelector(".close").onclick = function () {
+  modal.style.display = "none";
+  localStorage.setItem("flashcardVoiceSettings", JSON.stringify(voiceSettings));
+};
+document.getElementById("flip-all-button").onclick = function () {
+  document.querySelectorAll(".flashcard").forEach(function (card, i) {
+    card.dataset.side = "0";
+    card.querySelector(".content").textContent = (CARDS[i] && CARDS[i][LANGS[0]]) || "";
+  });
+};
+speechSynthesis.onvoiceschanged = populateVoiceSelects;
+document.addEventListener("scroll", function () {
+  document.body.classList.toggle("scrolled", window.scrollY > 40);
+});
+window.Marks.onChange(paintRemembered);
+
+if (!pageId) location.href = "index.html";
+window.Pages.ready.then(function () { return window.Pages.open(pageId); }).then(function (page) {
+  if (!page) {
+    document.getElementById("title").textContent = "Page not found";
+    document.getElementById("card-container").innerHTML = '<p class="empty">This page is not saved.</p>';
+    document.getElementById("edit-link").hidden = true;
+    return;
+  }
+  render(page);
+  window.Marks.ready.then(paintRemembered);
+}).catch(function () {
+  document.getElementById("card-container").innerHTML = '<p class="empty">Could not open this page. Check the internet and try again.</p>';
+});
+</script>
+</body>
+</html>

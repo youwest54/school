@@ -1,11 +1,12 @@
 /* Pick a clear AI / neural voice for each language and speak with it. */
 (function () {
   var VERSION = "2";
-  var LOCALES = { ar: "ar-SA", en: "en-US", fr: "fr-FR", nl: "nl-NL" };
+  var LOCALES = { ar: "ar-SA", en: "en-US", fr: "fr-FR", es: "es-ES", nl: "nl-NL" };
   var PREFERRED = {
     ar: ["zariyah", "hamed", "naayf", "salma", "google"],
     en: ["aria", "jenny", "guy", "sonia", "libby", "ryan", "google us english", "samantha", "daniel"],
     fr: ["denise", "henri", "vivienne", "google français", "google francais", "thomas", "amelie"],
+    es: ["elvira", "helena", "laura", "pablo", "google español", "google espanol", "monica"],
     nl: ["colette", "fenna", "maarten", "google nederlands", "xander"]
   };
 
@@ -14,6 +15,7 @@
       ar: { voiceURI: null, rate: 0.9, pitch: 1 },
       en: { voiceURI: null, rate: 0.9, pitch: 1 },
       fr: { voiceURI: null, rate: 0.9, pitch: 1 },
+      es: { voiceURI: null, rate: 0.9, pitch: 1 },
       nl: { voiceURI: null, rate: 0.9, pitch: 1 }
     }));
     localStorage.setItem("flashcardVoiceVersion", VERSION);
