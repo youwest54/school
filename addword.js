@@ -21,7 +21,9 @@
     ".extra-card .play-button{flex:none;width:4rem;height:4rem;padding:0;border-radius:50%;font-size:2rem;background:#fff;color:#1976d2;box-shadow:0 2px 6px rgba(0,0,0,.2)}",
     ".extra-card.remembered{border-color:#43a047}",
     ".extra-card .remember-button.remembered{background:#43a047;color:#fff}",
-    "@media(prefers-color-scheme:dark){#add-word-form,.extra-card{background:#1c1c1e;color:#e4e4e4;border-color:#333}#add-word-form input{background:#111;color:#eee;border-color:#444}}"
+    ".hold-note{text-align:center;color:#666;font-size:.9rem;margin:.35rem 0 0}",
+    ".flashcard.hold-delete,.extra-card.hold-delete{box-shadow:inset 0 0 0 4px #c62828;background:#ffebee}",
+    "@media(prefers-color-scheme:dark){#add-word-form,.extra-card{background:#1c1c1e;color:#e4e4e4;border-color:#333}#add-word-form input{background:#111;color:#eee;border-color:#444}.hold-note{color:#bbb}.flashcard.hold-delete,.extra-card.hold-delete{background:#3a1d1d}}"
   ].join("");
   document.head.appendChild(style);
 
@@ -62,7 +64,10 @@
   cancelBtn.textContent = "Cancel";
   actions.append(saveBtn, cancelBtn);
   form.append(fields, actions, error);
-  bar.append(openBtn, form);
+  var note = document.createElement("p");
+  note.className = "hold-note";
+  note.textContent = "Hold a card to delete it.";
+  bar.append(openBtn, note, form);
   var heading = document.querySelector("h1");
   if (heading && heading.parentNode) heading.parentNode.insertBefore(bar, heading.nextSibling);
   else container.parentNode.insertBefore(bar, container);
@@ -191,12 +196,79 @@
     };
   }
 
+  var hold = null;
+  var deleteHeld = function () { return Promise.resolve(); };
+
+  function clearHold() {
+    if (!hold) return;
+    clearTimeout(hold.timer);
+    hold.card.classList.remove("hold-delete");
+    hold = null;
+  }
+
+  container.addEventListener("pointerdown", function (e) {
+    var card = e.target.closest(".flashcard, .extra-card");
+    if (!card || e.target.closest("button, a, input, select") || (e.button && e.button !== 0)) return;
+    clearHold();
+    hold = {
+      card: card,
+      x: e.clientX,
+      y: e.clientY,
+      armed: false,
+      timer: setTimeout(function () {
+        if (!hold || hold.card !== card) return;
+        hold.armed = true;
+        card.classList.add("hold-delete");
+      }, 650)
+    };
+  });
+  window.addEventListener("pointermove", function (e) {
+    if (!hold || hold.armed) return;
+    if (Math.abs(e.clientX - hold.x) > 14 || Math.abs(e.clientY - hold.y) > 14) clearHold();
+  });
+  window.addEventListener("pointerup", function () {
+    if (!hold) return;
+    var card = hold.card;
+    var armed = hold.armed;
+    clearHold();
+    if (!armed) return;
+    card.dataset.held = "1";
+    deleteHeld(card).catch(function () {
+      card.dataset.held = "";
+      error.textContent = "Could not delete the card. Check the internet and try again.";
+    });
+  });
+  window.addEventListener("pointercancel", clearHold);
+  container.addEventListener("contextmenu", function (e) {
+    if (e.target.closest(".flashcard, .extra-card")) e.preventDefault();
+  });
+  container.addEventListener("click", function (e) {
+    var card = e.target.closest(".flashcard, .extra-card");
+    if (!card || card.dataset.held !== "1") return;
+    e.preventDefault();
+    e.stopPropagation();
+    card.dataset.held = "";
+  }, true);
+
   var name = fileName();
   if (name === "custom.html") {
     var pageId = (new URLSearchParams(location.search).get("id") || "").replace(/[^a-z0-9]/g, "");
     window.Pages.ready.then(function () { return window.Pages.open(pageId); }).then(function (page) {
       if (!page) return;
       var langs = (window.Pages.tracks[page.track] && window.Pages.tracks[page.track].langs) || ["en"];
+      deleteHeld = function (card) {
+        if (!card.dataset.id || !page.cards) return Promise.resolve();
+        var cards = page.cards.filter(function (item) { return item.id !== card.dataset.id; });
+        return window.Pages.save({
+          id: page.id,
+          title: page.title,
+          track: page.track,
+          cards: cards
+        }).then(function (saved) {
+          page = saved;
+          card.remove();
+        });
+      };
       wire(langs, function (card) {
         var cards = (page.cards || []).slice();
         if (cards.length >= 40) return Promise.reject(new Error("full"));
@@ -221,11 +293,41 @@
   }).then(function (page) {
     current = page || { cards: [] };
     function persist(cards) {
-      return window.Pages.saveExtras(id, track, cards).then(function (saved) {
+      return window.Pages.saveExtras(id, track, cards, current.hidden || []).then(function (saved) {
         current = saved;
         showExtraCards(saved.cards, langs, removeCard);
+        hideOriginals();
       });
     }
+    function hideOriginals() {
+      var hidden = {};
+      var next = 0;
+      (current.hidden || []).forEach(function (n) { hidden[String(n)] = true; });
+      container.querySelectorAll(".flashcard").forEach(function (card) {
+        if (!card.dataset.origin) {
+          card.dataset.origin = String(next);
+          next += 1;
+        } else {
+          next = Math.max(next, parseInt(card.dataset.origin, 10) + 1);
+        }
+        if (hidden[card.dataset.origin]) card.remove();
+      });
+    }
+    deleteHeld = function (card) {
+      if (card.classList.contains("extra-card")) {
+        return card.onremove ? card.onremove() : Promise.resolve();
+      }
+      var origin = card.dataset.origin;
+      if (!origin) return Promise.resolve();
+      var hidden = (current.hidden || []).slice();
+      if (hidden.indexOf(origin) === -1) hidden.push(origin);
+      card.remove();
+      return window.Pages.saveExtras(id, track, current.cards || [], hidden).then(function (saved) {
+        current = saved;
+      });
+    };
+    document.addEventListener("DOMContentLoaded", function () { setTimeout(hideOriginals, 0); });
+    setTimeout(hideOriginals, 0);
     function removeCard(cardId) {
       return persist((current.cards || []).filter(function (card) { return card.id !== cardId; }));
     }

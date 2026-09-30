@@ -172,7 +172,8 @@
       title: page.title,
       track: page.track,
       t: page.t,
-      cards: page.cards || []
+      cards: page.cards || [],
+      hidden: page.hidden || []
     }));
   }
 
@@ -317,7 +318,7 @@
   }
 
   function blankExtra(id, track) {
-    return { id: id, title: "extra", track: track, t: 0, cards: [] };
+    return { id: id, title: "extra", track: track, t: 0, cards: [], hidden: [] };
   }
 
   function loadExtras(id, track) {
@@ -340,13 +341,22 @@
     });
   }
 
-  function saveExtras(id, track, cards) {
+  function cleanHidden(list) {
+    var out = [];
+    (list || []).forEach(function (n) {
+      var s = String(n);
+      if (/^\d+$/.test(s) && out.indexOf(s) === -1) out.push(s);
+    });
+    return out.slice(0, 300);
+  }
+
+  function saveExtras(id, track, cards, hidden) {
     var cleaned;
     if (!TRACKS[track] || !/^[a-z0-9]+$/.test(id || "")) return Promise.reject(new Error("language"));
     cleaned = (cards || []).map(function (card) {
       return cleanCard(track, card);
     }).filter(Boolean).slice(0, 40);
-    var page = { id: id, title: "extra", track: track, t: now(), cards: cleaned };
+    var page = { id: id, title: "extra", track: track, t: now(), cards: cleaned, hidden: cleanHidden(hidden) };
     state.pages[id] = page;
     saveCache();
     return enqueue(function () {
