@@ -8,6 +8,7 @@
     ".add-word-bar{max-width:640px;margin:0 auto 1rem}",
     ".add-word-bar button{font-size:1rem;border-radius:8px;padding:.55rem .9rem;cursor:pointer}",
     "#open-add-word,#save-added-word{background:#1976d2;color:#fff;border:none}",
+    "#delete-part-page{background:#fff;color:#c62828;border:1px solid #e57373;border-radius:8px;padding:.55rem .9rem;cursor:pointer;margin-left:.5rem}",
     "#cancel-add-word,.extra-remove{background:#fff;color:#333;border:1px solid #ccc}",
     "#add-word-form{background:#fff;border:1px solid #ddd;border-radius:12px;padding:1rem;margin-top:.7rem}",
     "#add-word-form label{display:block;margin:.55rem 0 .2rem}",
@@ -31,7 +32,7 @@
     ".sure-actions button{flex:1;font-size:1.1rem;padding:.75rem;border-radius:8px;border:none;cursor:pointer}",
     "#sure-yes{background:#c62828;color:#fff}",
     "#sure-no{background:#eee;color:#222}",
-    "@media(prefers-color-scheme:dark){#add-word-form,.extra-card,.sure-box{background:#1c1c1e;color:#e4e4e4;border-color:#333}#add-word-form input{background:#111;color:#eee;border-color:#444}.hold-note{color:#bbb}.flashcard.hold-delete,.extra-card.hold-delete{background:#3a1d1d}#sure-no{background:#333;color:#eee}}"
+    "@media(prefers-color-scheme:dark){#add-word-form,.extra-card,.sure-box,#delete-part-page{background:#1c1c1e;color:#e4e4e4;border-color:#333}#add-word-form input{background:#111;color:#eee;border-color:#444}.hold-note{color:#bbb}.flashcard.hold-delete,.extra-card.hold-delete{background:#3a1d1d}#sure-no{background:#333;color:#eee}#delete-part-page{color:#ef9a9a}}"
   ].join("");
   document.head.appendChild(style);
 
@@ -76,6 +77,29 @@
   note.className = "hold-note";
   note.textContent = "Hold a card. Then choose Yes or No.";
   bar.append(openBtn, note, form);
+  if (window.Pages.isPart(fileName())) {
+    var delPage = document.createElement("button");
+    delPage.id = "delete-part-page";
+    delPage.type = "button";
+    delPage.textContent = "Delete page";
+    delPage.onclick = function () {
+      var btn = this;
+      var name = fileName();
+      btn.disabled = true;
+      window.Pages.askHidePart(name).then(function (ok) {
+        if (ok) location.href = window.Pages.partHome(name);
+        else btn.disabled = false;
+      }).catch(function () {
+        btn.disabled = false;
+        alert("Could not delete. Check the internet and try again.");
+      });
+    };
+    openBtn.insertAdjacentElement("afterend", delPage);
+    window.Pages.ready.then(function () {
+      var name = fileName();
+      if (window.Pages.partGone(name)) location.replace(window.Pages.partHome(name));
+    });
+  }
   var heading = document.querySelector("h1");
   if (heading && heading.parentNode) heading.parentNode.insertBefore(bar, heading.nextSibling);
   else container.parentNode.insertBefore(bar, container);
