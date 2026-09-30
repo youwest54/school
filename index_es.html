@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport"
         content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Select Your Language</title>
+  <title>Español Pages</title>
 
   <style>
-    /* ─────────  GLOBAL "COMPACT" VARS  ───────── */
     :root{
-      --pad:clamp(.75rem,3.5vw,1.1rem);   /* single gutter var */
+      --pad:clamp(.75rem,3.5vw,1.1rem);
       --fs-body:clamp(1rem,4vw,1.15rem);
       --fs-h1:clamp(1.4rem,6vw,1.8rem);
 
@@ -36,10 +35,8 @@
       margin-bottom:var(--pad);
     }
 
-    /* optional breathing room so you can scroll a little */
     .scroll-buffer{width:100%;height:120px;flex-shrink:0}
 
-    /* ─────────  RESPONSIVE GRID  ───────── */
     .grid{
       display:grid;width:100%;max-width:640px;gap:var(--pad);
       grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
@@ -54,7 +51,7 @@
       transition:background .2s,color .2s,transform .1s;
       user-select:none;touch-action:manipulation;
     }
-    .grid a:nth-child(4n){margin-bottom:5rem}  /* creates a gap every 4th tile */
+    .grid a:nth-child(4n){margin-bottom:5rem}
     .grid a.done{filter:var(--done-filter)}
 
     .done-toggle{
@@ -65,17 +62,9 @@
 
     .grid a:hover{background:var(--primary);color:#fff}
     .grid a:active{transform:scale(.97)}
+    .grid a.mine{font-size:.95rem;line-height:1.25;text-align:center;overflow:hidden}
+    .hint{max-width:640px;text-align:center;color:#555;line-height:1.4}
 
-    .add-page{
-      display:flex;align-items:center;justify-content:center;
-      width:100%;max-width:640px;margin-top:.4rem;
-      background:var(--primary);color:#fff;text-decoration:none;
-      border-radius:var(--tile-radius);font-size:var(--fs-body);
-      padding:1rem;box-shadow:var(--tile-shadow);
-    }
-    .hint{max-width:640px;text-align:center;color:#555;margin-top:.7rem;line-height:1.4}
-
-    /* ─────────  RETURN BUTTON (for language index pages only)  ───────── */
     #return-button{
       position:fixed;
       bottom:calc(env(safe-area-inset-bottom,0) + 1rem);
@@ -86,18 +75,16 @@
       background:var(--primary);color:#fff;
       box-shadow:0 3px 8px rgba(0,0,0,.25);
       z-index:1002;cursor:pointer;touch-action:manipulation;
-      transition:transform .25s ease,opacity .25s ease;   /* smooth shrink */
+      transition:transform .25s ease,opacity .25s ease;
     }
     body.scrolled #return-button{transform:scale(.85);opacity:.4}
 
-    /* small iPhones */
     @media(max-width:400px){
       #return-button{width:7rem;height:7rem;font-size:3rem}
       .grid a{font-size:.9rem;padding:calc(var(--pad)*.65)}
       h1{font-size:clamp(1.25rem,6vw,1.6rem)}
     }
 
-    /* Dark-mode quick pass */
     @media(prefers-color-scheme:dark){
       body{background:#111;color:#e4e4e4}
       .grid a{background:#1c1c1e}
@@ -106,31 +93,28 @@
   </style>
 </head>
 <body>
-  <h1>Welcome! Choose your language:</h1>
+  <h1>Español Pages</h1>
 
   <div class="scroll-buffer"></div>
 
-  <nav class="grid">
-    <a href="index_en.html">English</a>
-    <a href="index_es.html">Español</a>
-    <a href="index_nl.html">Nederlands</a>
-  </nav>
-  <a class="add-page" href="new.html">＋ Add new page</a>
-  <p class="hint">Make a new flashcard page in English, Spanish, or Dutch. The words are saved and show on every computer.</p>
+  <nav class="grid"></nav>
+  <p class="hint" id="empty">No pages yet. Use Add new page on the first screen.</p>
 
   <div class="scroll-buffer"></div>
 
-  
+  <a id="return-button" href="index.html" title="Back">←</a>
 
-  <script src="marks.js?v=5"></script>
+  <script src="marks.js?v=6"></script>
+  <script src="pages.js?v=1"></script>
   <script>
-    /* ---- Tile "✔" state (shared across computers) ---- */
     function paintTiles(){
       document.querySelectorAll('.grid a').forEach(tile=>{
         tile.classList.toggle('done', window.Marks.isDone(tile.getAttribute('href')));
       });
     }
-    document.querySelectorAll('.grid a').forEach(tile=>{
+    function wireTile(tile){
+      if(tile.dataset.wired) return;
+      tile.dataset.wired='1';
       const href=tile.getAttribute('href');
       const btn=document.createElement('button');
       btn.type='button';
@@ -140,12 +124,29 @@
         e.stopPropagation();
         window.Marks.setDone(href, !window.Marks.isDone(href));
       });
-    });
+    }
+    function showMine(){
+      const grid=document.querySelector('.grid');
+      const pages=window.Pages.list('es');
+      grid.querySelectorAll('a.mine').forEach(a=>a.remove());
+      pages.forEach(page=>{
+        const a=document.createElement('a');
+        a.className='mine';
+        a.href='custom.html?id='+page.id;
+        a.textContent=page.title;
+        grid.appendChild(a);
+        wireTile(a);
+      });
+      document.getElementById('empty').hidden=pages.length>0;
+      paintTiles();
+    }
+    window.Pages.onChange(showMine);
+    showMine();
+    window.Pages.ready.then(showMine);
     window.Marks.onChange(paintTiles);
     paintTiles();
     window.Marks.ready.then(paintTiles);
 
-    /* ---- Auto-shrink return button ---- */
     document.addEventListener('scroll',()=>document.body.classList.
       toggle('scrolled',window.scrollY>40));
   </script>

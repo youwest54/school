@@ -28,6 +28,10 @@
     } catch (e) {
       name = location.pathname.split("/").pop() || "";
     }
+    if (name === "custom.html") {
+      var match = /(?:^|[?&])id=([a-z0-9]+)/.exec(location.search || "");
+      if (match) return "custom_" + match[1] + ".html";
+    }
     return name || "index.html";
   }
 

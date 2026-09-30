@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Add a page</title>
+  <style>
+    :root{
+      --pad:clamp(.75rem,3.5vw,1.1rem);
+      --primary:#1976d2;
+      --background:#f4f4f9;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      background:var(--background);color:#333;
+      min-height:100vh;padding:var(--pad);
+      padding-bottom:6rem;
+    }
+    h1{font-size:clamp(1.4rem,6vw,1.8rem);text-align:center;margin:1rem 0}
+    .hint{text-align:center;color:#555;margin-bottom:1rem;line-height:1.4}
+    .wrap{width:100%;max-width:640px;margin:0 auto}
+    .choices{display:grid;gap:var(--pad);grid-template-columns:1fr}
+    .choices a,.primary,.ghost,.danger{
+      display:flex;align-items:center;justify-content:center;
+      text-decoration:none;border-radius:12px;font-size:1.15rem;
+      padding:1.1rem;border:none;cursor:pointer;width:100%;
+    }
+    .choices a{background:#fff;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.1)}
+    label{display:block;margin:.7rem 0 .25rem;font-size:.95rem}
+    input[type=text]{
+      width:100%;font-size:1rem;padding:.6rem;border:1px solid #ccc;border-radius:8px;
+      background:#fff;color:#222;
+    }
+    .word{
+      background:#fff;border-radius:12px;padding:1rem;margin-top:1rem;
+      box-shadow:0 2px 8px rgba(0,0,0,.08);
+    }
+    .word h2{font-size:1rem;margin-bottom:.2rem}
+    .remove{
+      margin-top:.7rem;background:#eee;color:#333;border:none;border-radius:8px;
+      padding:.45rem .8rem;cursor:pointer;
+    }
+    .actions{display:grid;gap:.7rem;margin-top:1rem}
+    .primary{background:var(--primary);color:#fff}
+    .ghost{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+    .danger{background:#fff;color:#c62828;border:1px solid #e57373}
+    .error{color:#c62828;text-align:center;min-height:1.2rem;margin-top:.6rem}
+    #back{
+      display:inline-block;margin-bottom:.4rem;color:var(--primary);text-decoration:none;font-size:1.05rem;
+    }
+    @media(prefers-color-scheme:dark){
+      body{background:#111;color:#e4e4e4}
+      .choices a,.word,input[type=text],.ghost,.danger{background:#1c1c1e;color:#e4e4e4}
+      input[type=text]{border-color:#444}
+      .hint{color:#bbb}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a id="back" href="index.html">← Back</a>
+    <h1 id="heading">Add a new page</h1>
+    <p class="hint" id="hint">Choose English, Spanish, or Dutch. The words are saved and show on every computer.</p>
+    <div id="choose" class="choices">
+      <a href="new.html?track=en">English</a>
+      <a href="new.html?track=es">Spanish</a>
+      <a href="new.html?track=nl">Dutch</a>
+    </div>
+    <form id="form" hidden>
+      <label for="title">Page name</label>
+      <input id="title" type="text" maxlength="30" placeholder="My words" required>
+      <div id="rows"></div>
+      <div class="actions">
+        <button class="ghost" id="add" type="button">Add word</button>
+        <button class="primary" id="save" type="submit">Save page</button>
+        <button class="danger" id="del" type="button" hidden>Delete page</button>
+      </div>
+      <p class="error" id="error"></p>
+    </form>
+  </div>
+  <script src="pages.js?v=1"></script>
+  <script>
+    var params = new URLSearchParams(location.search);
+    var track = params.get("track");
+    var pageId = params.get("id");
+    var form = document.getElementById("form");
+    var choose = document.getElementById("choose");
+    var rows = document.getElementById("rows");
+    var titleInput = document.getElementById("title");
+    var error = document.getElementById("error");
+    var delBtn = document.getElementById("del");
+    var count = 0;
+
+    function langs(){
+      return (window.Pages.tracks[track] && window.Pages.tracks[track].langs) || [];
+    }
+
+    function addRow(card){
+      if (rows.children.length >= 40) {
+        error.textContent = "40 words is the limit. Save this page, then make another one.";
+        return;
+      }
+      var box = document.createElement("div");
+      var heading = document.createElement("h2");
+      var remove = document.createElement("button");
+      box.className = "word";
+      if (card && card.id) box.dataset.id = card.id;
+      count += 1;
+      heading.textContent = "Word " + count;
+      box.appendChild(heading);
+      langs().forEach(function (lang) {
+        var label = document.createElement("label");
+        var input = document.createElement("input");
+        label.textContent = window.Pages.names[lang] || lang;
+        input.type = "text";
+        input.dataset.lang = lang;
+        input.placeholder = window.Pages.names[lang] || lang;
+        input.value = (card && card[lang]) || "";
+        box.appendChild(label);
+        box.appendChild(input);
+      });
+      remove.type = "button";
+      remove.className = "remove";
+      remove.textContent = "Remove word";
+      remove.onclick = function () {
+        box.remove();
+        Array.prototype.forEach.call(rows.children, function (row, index) {
+          row.querySelector("h2").textContent = "Word " + (index + 1);
+        });
+        count = rows.children.length;
+      };
+      box.appendChild(remove);
+      rows.appendChild(box);
+    }
+
+    function showForm(page){
+      var label = track === "es" ? "Spanish" : track === "nl" ? "Dutch" : "English";
+      choose.hidden = true;
+      form.hidden = false;
+      document.getElementById("heading").textContent = page ? "Edit page" : ("New " + label + " page");
+      document.getElementById("hint").textContent = "Type the words, then save. They stay saved on every computer.";
+      document.getElementById("back").href = page ? ("custom.html?id=" + page.id) : "index.html";
+      titleInput.value = page ? page.title : "";
+      rows.innerHTML = "";
+      count = 0;
+      ((page && page.cards) || [{}]).forEach(addRow);
+      if (page) {
+        delBtn.hidden = false;
+        delBtn.onclick = function () {
+          if (!confirm("Delete this page?")) return;
+          delBtn.disabled = true;
+          window.Pages.remove(page.id).then(function () {
+            location.href = track === "es" ? "index_es.html" : track === "nl" ? "index_nl.html" : "index_en.html";
+          }).catch(function () {
+            delBtn.disabled = false;
+            error.textContent = "Could not delete. Check the internet and try again.";
+          });
+        };
+      }
+    }
+
+    document.getElementById("add").onclick = function () { error.textContent = ""; addRow(); };
+
+    form.onsubmit = function (e) {
+      var cards = [];
+      e.preventDefault();
+      error.textContent = "";
+      Array.prototype.forEach.call(rows.children, function (row) {
+        var card = { id: row.dataset.id || "" };
+        langs().forEach(function (lang) {
+          card[lang] = row.querySelector('[data-lang="' + lang + '"]').value;
+        });
+        cards.push(card);
+      });
+      document.getElementById("save").disabled = true;
+      window.Pages.save({
+        id: pageId || "",
+        title: titleInput.value,
+        track: track,
+        cards: cards
+      }).then(function (page) {
+        location.href = "custom.html?id=" + page.id;
+      }).catch(function () {
+        document.getElementById("save").disabled = false;
+        error.textContent = "Could not save. Check the internet and try again.";
+      });
+    };
+
+    if (pageId) {
+      choose.hidden = true;
+      document.getElementById("hint").textContent = "Opening the saved page...";
+      window.Pages.ready.then(function () {
+        return window.Pages.open(pageId);
+      }).then(function (page) {
+        if (!page) {
+          document.getElementById("heading").textContent = "Page not found";
+          document.getElementById("hint").textContent = "This page is not saved.";
+          choose.hidden = true;
+          return;
+        }
+        track = page.track;
+        showForm(page);
+      }).catch(function () {
+        error.textContent = "Could not open this page. Check the internet and try again.";
+      });
+    } else if (window.Pages.tracks[track]) {
+      showForm(null);
+    }
+  </script>
+</body>
+</html>

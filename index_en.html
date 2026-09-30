@@ -65,6 +65,7 @@
 
     .grid a:hover{background:var(--primary);color:#fff}
     .grid a:active{transform:scale(.97)}
+    .grid a.mine{font-size:.95rem;line-height:1.25;text-align:center;overflow:hidden}
 
     /* ─────────  RETURN BUTTON (for language index pages only)  ───────── */
     #return-button{
@@ -126,7 +127,8 @@
 
   <a id="return-button" href="index.html" title="Back">←</a>
 
-  <script src="marks.js?v=5"></script>
+  <script src="marks.js?v=6"></script>
+  <script src="pages.js?v=1"></script>
   <script>
     /* ---- Tile "✔" state (shared across computers) ---- */
     function paintTiles(){
@@ -134,7 +136,9 @@
         tile.classList.toggle('done', window.Marks.isDone(tile.getAttribute('href')));
       });
     }
-    document.querySelectorAll('.grid a').forEach(tile=>{
+    function wireTile(tile){
+      if(tile.dataset.wired) return;
+      tile.dataset.wired='1';
       const href=tile.getAttribute('href');
       const btn=document.createElement('button');
       btn.type='button';
@@ -144,7 +148,24 @@
         e.stopPropagation();
         window.Marks.setDone(href, !window.Marks.isDone(href));
       });
-    });
+    }
+    document.querySelectorAll('.grid a').forEach(wireTile);
+    function showMine(){
+      const grid=document.querySelector('.grid');
+      grid.querySelectorAll('a.mine').forEach(a=>a.remove());
+      window.Pages.list('en').forEach(page=>{
+        const a=document.createElement('a');
+        a.className='mine';
+        a.href='custom.html?id='+page.id;
+        a.textContent=page.title;
+        grid.appendChild(a);
+        wireTile(a);
+      });
+      paintTiles();
+    }
+    window.Pages.onChange(showMine);
+    showMine();
+    window.Pages.ready.then(showMine);
     window.Marks.onChange(paintTiles);
     paintTiles();
     window.Marks.ready.then(paintTiles);
