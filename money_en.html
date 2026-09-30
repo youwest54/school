@@ -46,6 +46,17 @@
             margin-bottom: 0.5rem;
         }
 
+        #delete-part-page {
+            margin-top: 0.8rem;
+            background: #fff;
+            color: #c62828;
+            border: 1px solid #e57373;
+            border-radius: 8px;
+            padding: 0.55rem 0.9rem;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
         .drag-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -431,6 +442,7 @@
         <div class="header">
             <h1>Expenses Manager</h1>
             <p>Drag to reorder expenses</p>
+            <button id="delete-part-page" type="button">Delete page</button>
         </div>
 
         <div class="summary-panel">
@@ -993,6 +1005,23 @@
                     hideDeleteConfirm();
                 }
             });
+        });
+    </script>
+    <script src="pages.js?v=6"></script>
+    <script>
+        document.getElementById("delete-part-page").onclick = function () {
+            var btn = this;
+            btn.disabled = true;
+            window.Pages.askHidePart("money_en.html").then(function (ok) {
+                if (ok) location.href = "index_en.html";
+                else btn.disabled = false;
+            }).catch(function () {
+                btn.disabled = false;
+                alert("Could not delete. Check the internet and try again.");
+            });
+        };
+        window.Pages.ready.then(function () {
+            if (window.Pages.partGone("money_en.html")) location.replace("index_en.html");
         });
     </script>
 </body>
