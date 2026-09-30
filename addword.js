@@ -66,7 +66,7 @@
   form.append(fields, actions, error);
   var note = document.createElement("p");
   note.className = "hold-note";
-  note.textContent = "Hold a card to delete it.";
+  note.textContent = "Hold a card to delete it. It will ask first.";
   bar.append(openBtn, note, form);
   var heading = document.querySelector("h1");
   if (heading && heading.parentNode) heading.parentNode.insertBefore(bar, heading.nextSibling);
@@ -233,6 +233,7 @@
     clearHold();
     if (!armed) return;
     card.dataset.held = "1";
+    if (!confirm("Are you sure you want to delete this card?")) return;
     deleteHeld(card).catch(function () {
       card.dataset.held = "";
       error.textContent = "Could not delete the card. Check the internet and try again.";
