@@ -12,7 +12,11 @@
   };
   var NAMES = { ar: "Arabic", en: "English", fr: "French", es: "Spanish", nl: "Dutch" };
 
-  var state = { index: {}, pages: {} };
+  var state = { index: {}, pages: {}, hidden: {} };
+  var PART_FILES = {};
+  var partNumber;
+  for (partNumber = 1; partNumber <= 18; partNumber++) PART_FILES["part " + partNumber + "_en.html"] = "en";
+  for (partNumber = 1; partNumber <= 4; partNumber++) PART_FILES[partNumber + "_nl.html"] = "nl";
   var listeners = [];
   var tail = Promise.resolve();
 
@@ -107,11 +111,13 @@
       if (saved && typeof saved === "object") {
         state.index = saved.index || {};
         state.pages = saved.pages || {};
+        state.hidden = saved.hidden || {};
       }
     } catch (e) {}
   }
 
   function emit() {
+    try { applyHiddenParts(); } catch (e) {}
     listeners.forEach(function (fn) {
       try { fn(); } catch (e) {}
     });
@@ -265,8 +271,94 @@
     });
   }
 
+  function syncHidden() {
+    return readPacked("school_h_n", function (i) { return "school_h_" + i; }).then(function (raw) {
+      var remote = unpack(raw);
+      var merged = mergeBag(state.hidden, remote);
+      var before = pack(state.hidden);
+      state.hidden = merged;
+      saveCache();
+      if (pack(merged) !== before) emit();
+      if (pack(merged) !== pack(remote)) {
+        return writePacked("school_h_n", function (i) { return "school_h_" + i; }, pack(merged));
+      }
+    });
+  }
+
   function sync() {
-    return syncIndex().then(syncManifests);
+    return syncIndex().then(syncHidden).then(syncManifests);
+  }
+
+  function partKey(name) {
+    return String(name || "").replace(/[^a-zA-Z0-9]/g, "_");
+  }
+
+  function isPart(name) {
+    return Object.prototype.hasOwnProperty.call(PART_FILES, String(name || ""));
+  }
+
+  function partGone(name) {
+    var row = state.hidden[partKey(name)];
+    return !!(row && row.v);
+  }
+
+  function partHome(name) {
+    return PART_FILES[name] === "nl" ? "index_nl.html" : "index_en.html";
+  }
+
+  function hidePart(name) {
+    var key = partKey(name);
+    var prev = state.hidden[key];
+    if (!isPart(name)) return Promise.resolve(false);
+    state.hidden[key] = { v: true, t: now() };
+    saveCache();
+    emit();
+    return enqueue(function () {
+      return syncHidden().then(function () { return true; }).catch(function (err) {
+        if (prev) state.hidden[key] = prev;
+        else delete state.hidden[key];
+        saveCache();
+        emit();
+        throw err;
+      });
+    });
+  }
+
+  function askHidePart(name) {
+    if (!isPart(name) || !confirm("Delete this page?")) return Promise.resolve(false);
+    return hidePart(name);
+  }
+
+  function applyHiddenParts() {
+    document.querySelectorAll(".grid a").forEach(function (tile) {
+      var href = tile.getAttribute("href");
+      if (isPart(href) && partGone(href)) tile.remove();
+    });
+  }
+
+  function wirePartDeletes() {
+    if (!document.querySelector(".grid")) return;
+    document.querySelectorAll(".grid a").forEach(function (tile) {
+      var href = tile.getAttribute("href");
+      if (!isPart(href) || tile.dataset.partWired) return;
+      tile.dataset.partWired = "1";
+      tile.classList.add("part-tile");
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "delete-page";
+      del.textContent = "Delete";
+      del.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        askHidePart(href).then(function (ok) {
+          if (ok) tile.remove();
+        }).catch(function () {
+          alert("Could not delete. Check the internet and try again.");
+        });
+      });
+      tile.appendChild(del);
+    });
+    applyHiddenParts();
   }
 
   function cleanCard(track, card) {
@@ -408,6 +500,7 @@
   }
 
   loadCache();
+  wirePartDeletes();
   var ready = enqueue(sync);
   setInterval(function () { enqueue(sync); }, 30000);
   document.addEventListener("visibilitychange", function () {
@@ -425,6 +518,10 @@
     askRemove: askRemove,
     loadExtras: loadExtras,
     saveExtras: saveExtras,
+    isPart: isPart,
+    partGone: partGone,
+    partHome: partHome,
+    askHidePart: askHidePart,
     onChange: function (fn) { listeners.push(fn); }
   };
 })();
