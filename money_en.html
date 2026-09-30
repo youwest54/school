@@ -1007,13 +1007,13 @@
             });
         });
     </script>
-    <script src="pages.js?v=6"></script>
+    <script src="pages.js?v=7"></script>
     <script>
         document.getElementById("delete-part-page").onclick = function () {
             var btn = this;
             btn.disabled = true;
             window.Pages.askHidePart("money_en.html").then(function (ok) {
-                if (ok) location.href = "index_en.html";
+                if (ok) location.href = "index_en.html?v=7";
                 else btn.disabled = false;
             }).catch(function () {
                 btn.disabled = false;
@@ -1021,7 +1021,7 @@
             });
         };
         window.Pages.ready.then(function () {
-            if (window.Pages.partGone("money_en.html")) location.replace("index_en.html");
+            if (window.Pages.partGone("money_en.html")) location.replace("index_en.html?v=7");
         });
     </script>
 </body>

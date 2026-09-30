@@ -79,7 +79,7 @@
       <p class="error" id="error"></p>
     </form>
   </div>
-  <script src="pages.js?v=2"></script>
+  <script src="pages.js?v=7"></script>
   <script>
     var params = new URLSearchParams(location.search);
     var track = params.get("track");
@@ -148,13 +148,15 @@
       if (page) {
         delBtn.hidden = false;
         delBtn.onclick = function () {
-          if (!confirm("Delete this page?")) return;
-          delBtn.disabled = true;
-          window.Pages.remove(page.id).then(function () {
-            location.href = track === "es" ? "index_es.html" : track === "nl" ? "index_nl.html" : "index_en.html";
-          }).catch(function () {
-            delBtn.disabled = false;
-            error.textContent = "Could not delete. Check the internet and try again.";
+          window.Pages.askSure("Delete this page?").then(function (ok) {
+            if (!ok) return;
+            delBtn.disabled = true;
+            window.Pages.remove(page.id).then(function () {
+              location.href = track === "es" ? "index_es.html" : track === "nl" ? "index_nl.html" : "index_en.html";
+            }).catch(function () {
+              delBtn.disabled = false;
+              error.textContent = "Could not delete. Check the internet and try again.";
+            });
           });
         };
       }
