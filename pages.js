@@ -311,6 +311,11 @@
     return enqueue(syncIndex);
   }
 
+  function askRemove(id) {
+    if (!id || !confirm("Delete this page?")) return Promise.resolve(false);
+    return remove(id).then(function () { return true; });
+  }
+
   function open(id) {
     if (!id) return Promise.resolve(null);
     return readManifest(id).then(function (man) {
@@ -369,6 +374,7 @@
     open: open,
     save: save,
     remove: remove,
+    askRemove: askRemove,
     onChange: function (fn) { listeners.push(fn); }
   };
 })();
