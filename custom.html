@@ -12,8 +12,10 @@ body{
   background:#fafafa;color:#333;margin:0 auto;padding:var(--pad);padding-bottom:8rem;
 }
 h1{text-align:center;margin-bottom:.35rem;font-size:var(--fs-h1)}
-.tools{text-align:center;margin-bottom:.8rem}
-.tools a{color:#1976d2;text-decoration:none;font-size:1.05rem}
+.tools{display:flex;gap:.8rem;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:.8rem}
+.tools a,.tools button{font-size:1.05rem}
+.tools a{color:#1976d2;text-decoration:none}
+#delete-page{background:#fff;color:#c62828;border:1px solid #e57373;border-radius:8px;padding:.45rem .8rem;cursor:pointer}
 .empty{text-align:center;color:#555;margin-top:2rem}
 .flashcard{
   background:#fff;border:1px solid #ddd;border-radius:12px;padding:calc(var(--pad)*1.4);
@@ -63,7 +65,7 @@ body.scrolled #return-button{transform:scale(.85);opacity:.4}
 </head>
 <body>
 <h1 id="title">Flashcards</h1>
-<p class="tools"><a id="edit-link" href="new.html">Edit words</a></p>
+<p class="tools"><a id="edit-link" href="new.html">Edit words</a><button id="delete-page" type="button">Delete page</button></p>
 <button id="flip-all-button" title="Flip all cards">🔄</button>
 <button id="settings-button" title="Settings">⚙️</button>
 <div id="card-container"></div>
@@ -73,7 +75,7 @@ body.scrolled #return-button{transform:scale(.85);opacity:.4}
 </div></div>
 <a id="return-button" href="index.html" title="Return">←</a>
 <script src="marks.js?v=6"></script>
-<script src="pages.js?v=1"></script>
+<script src="pages.js?v=2"></script>
 <script src="voice.js?v=4"></script>
 <script>
 var LANGS = ["en"];
@@ -212,6 +214,17 @@ function render(page){
   document.getElementById("title").textContent = page.title || "Flashcards";
   document.title = page.title || "Flashcards";
   document.getElementById("edit-link").href = "new.html?id=" + page.id;
+  document.getElementById("delete-page").onclick = function () {
+    var btn = this;
+    btn.disabled = true;
+    window.Pages.askRemove(page.id).then(function (ok) {
+      if (ok) location.href = homeFor(page.track);
+      else btn.disabled = false;
+    }).catch(function () {
+      btn.disabled = false;
+      alert("Could not delete. Check the internet and try again.");
+    });
+  };
   document.getElementById("return-button").href = homeFor(page.track);
   LANGS = (window.Pages.tracks[page.track] && window.Pages.tracks[page.track].langs) || ["en"];
   CARDS = page.cards || [];
@@ -257,6 +270,7 @@ window.Pages.ready.then(function () { return window.Pages.open(pageId); }).then(
     document.getElementById("title").textContent = "Page not found";
     document.getElementById("card-container").innerHTML = '<p class="empty">This page is not saved.</p>';
     document.getElementById("edit-link").hidden = true;
+    document.getElementById("delete-page").hidden = true;
     return;
   }
   render(page);
