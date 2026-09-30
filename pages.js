@@ -316,6 +316,44 @@
     return remove(id).then(function () { return true; });
   }
 
+  function blankExtra(id, track) {
+    return { id: id, title: "extra", track: track, t: 0, cards: [] };
+  }
+
+  function loadExtras(id, track) {
+    return readManifest(id).then(function (man) {
+      var local = state.pages[id];
+      if (local && local.cards && (!man || (local.t || 0) >= (man.t || 0))) {
+        if (man && (local.t || 0) > (man.t || 0)) return writePage(local).then(function () { return local; });
+        return local;
+      }
+      if (!man) return blankExtra(id, track);
+      return readBody(id, man.n).then(function (page) {
+        if (!page) return local && local.cards ? local : blankExtra(id, track);
+        page.track = man.track || page.track || track;
+        page.title = "extra";
+        page.t = man.t || page.t || 0;
+        state.pages[id] = page;
+        saveCache();
+        return page;
+      });
+    });
+  }
+
+  function saveExtras(id, track, cards) {
+    var cleaned;
+    if (!TRACKS[track] || !/^[a-z0-9]+$/.test(id || "")) return Promise.reject(new Error("language"));
+    cleaned = (cards || []).map(function (card) {
+      return cleanCard(track, card);
+    }).filter(Boolean).slice(0, 40);
+    var page = { id: id, title: "extra", track: track, t: now(), cards: cleaned };
+    state.pages[id] = page;
+    saveCache();
+    return enqueue(function () {
+      return writePage(page).then(function () { return page; });
+    });
+  }
+
   function open(id) {
     if (!id) return Promise.resolve(null);
     return readManifest(id).then(function (man) {
@@ -375,6 +413,8 @@
     save: save,
     remove: remove,
     askRemove: askRemove,
+    loadExtras: loadExtras,
+    saveExtras: saveExtras,
     onChange: function (fn) { listeners.push(fn); }
   };
 })();
