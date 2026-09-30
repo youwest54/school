@@ -304,7 +304,7 @@
   }
 
   function partHome(name) {
-    return PART_FILES[name] === "nl" ? "index_nl.html" : "index_en.html";
+    return (PART_FILES[name] === "nl" ? "index_nl.html" : "index_en.html") + "?v=7";
   }
 
   function hidePart(name) {
@@ -314,20 +314,90 @@
     state.hidden[key] = { v: true, t: now() };
     saveCache();
     emit();
+    try {
+      var here = decodeURIComponent(location.pathname.split("/").pop() || "");
+      if (here === String(name)) document.body.style.visibility = "hidden";
+    } catch (e) {}
     return enqueue(function () {
       return syncHidden().then(function () { return true; }).catch(function (err) {
         if (prev) state.hidden[key] = prev;
         else delete state.hidden[key];
         saveCache();
+        document.body.style.visibility = "";
         emit();
         throw err;
       });
     });
   }
 
+  var sureBox = null;
+  var sureText = null;
+  var sureWait = null;
+
+  function ensureSure() {
+    var style;
+    var box;
+    var noBtn;
+    var yesBtn;
+    if (sureBox) return;
+    style = document.createElement("style");
+    style.textContent = [
+      "#page-sure{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1200;display:flex;align-items:center;justify-content:center;padding:1rem}",
+      "#page-sure[hidden]{display:none}",
+      "#page-sure .sure-box{background:#fff;color:#222;border-radius:12px;padding:1.2rem;width:min(92vw,340px);text-align:center}",
+      "#page-sure p{font-size:1.15rem;margin-bottom:1rem}",
+      "#page-sure .sure-actions{display:flex;gap:.6rem}",
+      "#page-sure button{flex:1;font-size:1.1rem;padding:.75rem;border-radius:8px;border:none;cursor:pointer}",
+      "#page-sure-yes{background:#c62828;color:#fff}",
+      "#page-sure-no{background:#eee;color:#222}",
+      "@media(prefers-color-scheme:dark){#page-sure .sure-box{background:#1c1c1e;color:#e4e4e4}#page-sure-no{background:#333;color:#eee}}"
+    ].join("");
+    document.head.appendChild(style);
+    sureBox = document.createElement("div");
+    sureBox.id = "page-sure";
+    sureBox.hidden = true;
+    box = document.createElement("div");
+    box.className = "sure-box";
+    sureText = document.createElement("p");
+    noBtn = document.createElement("button");
+    yesBtn = document.createElement("button");
+    noBtn.id = "page-sure-no";
+    noBtn.type = "button";
+    noBtn.textContent = "No";
+    yesBtn.id = "page-sure-yes";
+    yesBtn.type = "button";
+    yesBtn.textContent = "Yes";
+    var actions = document.createElement("div");
+    actions.className = "sure-actions";
+    actions.append(noBtn, yesBtn);
+    box.append(sureText, actions);
+    sureBox.appendChild(box);
+    document.body.appendChild(sureBox);
+    noBtn.onclick = function () { finishSure(false); };
+    yesBtn.onclick = function () { finishSure(true); };
+  }
+
+  function finishSure(ok) {
+    var wait = sureWait;
+    sureWait = null;
+    if (sureBox) sureBox.hidden = true;
+    if (wait) wait(ok);
+  }
+
+  function askSure(message) {
+    ensureSure();
+    if (sureWait) finishSure(false);
+    sureText.textContent = message || "Delete this page?";
+    sureBox.hidden = false;
+    return new Promise(function (resolve) { sureWait = resolve; });
+  }
+
   function askHidePart(name) {
-    if (!isPart(name) || !confirm("Delete this page?")) return Promise.resolve(false);
-    return hidePart(name);
+    if (!isPart(name)) return Promise.resolve(false);
+    return askSure("Delete this page?").then(function (ok) {
+      if (!ok) return false;
+      return hidePart(name);
+    });
   }
 
   function applyHiddenParts() {
@@ -348,6 +418,9 @@
       del.type = "button";
       del.className = "delete-page";
       del.textContent = "Delete";
+      del.addEventListener("pointerdown", function (e) {
+        e.stopPropagation();
+      });
       del.addEventListener("click", function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -406,8 +479,11 @@
   }
 
   function askRemove(id) {
-    if (!id || !confirm("Delete this page?")) return Promise.resolve(false);
-    return remove(id).then(function () { return true; });
+    if (!id) return Promise.resolve(false);
+    return askSure("Delete this page?").then(function (ok) {
+      if (!ok) return false;
+      return remove(id).then(function () { return true; });
+    });
   }
 
   function blankExtra(id, track) {
@@ -523,6 +599,7 @@
     partGone: partGone,
     partHome: partHome,
     askHidePart: askHidePart,
+    askSure: askSure,
     onChange: function (fn) { listeners.push(fn); }
   };
 })();
