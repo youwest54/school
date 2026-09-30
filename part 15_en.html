@@ -133,6 +133,7 @@ body.scrolled #return-button{
 <button id="return-button" title="Return">←</button>
 
 <script src="marks.js?v=5"></script>
+<script src="voice.js?v=3"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
 const CARDS = [{"ar": "حبة", "en": "Grain", "fr": "Blé"}, {"ar": "استغلال", "en": "Exploit", "fr": "Exploiter"}, {"ar": "طابور", "en": "Queue", "fr": "File d'attente"}, {"ar": "تنهيدة", "en": "Sigh", "fr": "Soupir"}, {"ar": "تنوع", "en": "Variety", "fr": "Variété"}, {"ar": "التركيز", "en": "Focusing", "fr": "Concentration"}, {"ar": "هامشي", "en": "Marginal", "fr": "Marginal"}, {"ar": "التهميش", "en": "Marginalisation", "fr": "Marginalisation"}, {"ar": "يسبب", "en": "Trigger", "fr": "Déclencheur"}, {"ar": "مكافأة", "en": "Reward", "fr": "Récompense"}, {"ar": "مذعور", "en": "Startled", "fr": "Surpris"}, {"ar": "التجاهل", "en": "Snubbing", "fr": "Ignorer"}, {"ar": "ملتزم", "en": "Committed", "fr": "Engagé"}, {"ar": "خزائن", "en": "Cupboards", "fr": "Placards"}, {"ar": "حكة", "en": "Itching", "fr": "Démangeaison"}, {"ar": "تعرض للسرقة", "en": "Mugged", "fr": "Agressé"}, {"ar": "تشويه السمعة", "en": "Discredit", "fr": "Discréditer"}, {"ar": "مبهر", "en": "Fascinating", "fr": "Fascinant"}, {"ar": "حدود", "en": "Boundary", "fr": "Limite"}, {"ar": "قمح", "en": "Wheat", "fr": "Blé"}, {"ar": "مهنة", "en": "Career", "fr": "Carrière"}, {"ar": "التسول", "en": "Begging", "fr": "Mendicité"}, {"ar": "عبادة الأصنام", "en": "Idolatry", "fr": "Idolâtrie"}, {"ar": "يطلب مئات الأشخاص في المطارات اللجوء السياسي", "en": "Hundreds of people claim political asylum at airports", "fr": "Des centaines de personnes demandent l'asile politique dans les aéroports"}, {"ar": "تجسيد", "en": "Concretisation", "fr": "Concrétisation"}, {"ar": "تكريس، تقديس", "en": "Sanctification (making something holy)", "fr": "Sanctification"}, {"ar": "التفاهة", "en": "Pettiness", "fr": "Insignifiance"}, {"ar": "يا إلهي! أتعتقد أن الشمس تدور حول الأرض؟ أنت متخلف حقًا", "en": "Oh my God! You think the sun moves around the earth? You are such a retard!", "fr": "Oh mon Dieu! Tu crois que le soleil tourne autour de la Terre? Tu es vraiment un attardé!"}, {"ar": "قد يبدو الناس قليلاً متخلفين ولكنهم ودودون جدًا", "en": "The people may seem a little backward but they're very friendly", "fr": "Les gens peuvent sembler un peu arriérés, mais ils sont très amicaux."}, {"ar": "مر", "en": "Bitter", "fr": "Amer"}, {"ar": "انتحر", "en": "Committed suicide", "fr": "S'est suicidé"}, {"ar": "المنافس", "en": "Competitor", "fr": "Concurrent"}, {"ar": "تصنع", "en": "Pretend", "fr": "Faire semblant"}, {"ar": "الرعد", "en": "Thunder", "fr": "Tonnerre"}, {"ar": "الحرث", "en": "Plowing", "fr": "Labour"}, {"ar": "احتقار", "en": "Contempt", "fr": "Mépris"}, {"ar": "إعفاء", "en": "Exemption", "fr": "Exonération"}, {"ar": "أنت لا تزال متخلفًا", "en": "You're still backward", "fr": "Tu es encore arriéré"}, {"ar": "حصاد", "en": "Harvest", "fr": "Récolte"}];
@@ -144,18 +145,22 @@ function saveRemembered(){ window.Marks.writeCards(remembered); }
 /* ───────── Voice settings blob ─────── */
 const voiceSettings = Object.fromEntries(LANGS.map(l=>[l,{voiceURI:null,rate:1,pitch:1}]));
 try{{ Object.assign(voiceSettings, JSON.parse(localStorage.getItem('flashcardVoiceSettings')||'{{}}')); }}catch(e){}
+window.voiceSettings = voiceSettings;
 
 /* ───────── Populate <select> once voices load ───────── */
-function populateVoiceSelects(){ const vs=speechSynthesis.getVoices();
+function populateVoiceSelects(){
+  if (window.FlashVoice) window.FlashVoice.applyDefaults(voiceSettings);
   document.querySelectorAll('.lang-settings').forEach(cfg=>{
     const lang=cfg.dataset.lang,sel=cfg.querySelector('.voice-select');
+    const list=window.FlashVoice?window.FlashVoice.voicesFor(lang):speechSynthesis.getVoices().filter(v=>v.lang.startsWith(lang));
     sel.innerHTML='';
-    vs.filter(v=>v.lang.startsWith(lang))
-      .forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));
-    sel.value=voiceSettings[lang].voiceURI||'';
+    sel.append(new Option('Best AI voice (default)', ''));
+    list.forEach(v=>sel.append(new Option(v.name+' ('+v.lang+')', v.voiceURI)));
+    sel.value=(voiceSettings[lang] && voiceSettings[lang].voiceURI) || '';
   });
 }
 speechSynthesis.onvoiceschanged = populateVoiceSelects;
+populateVoiceSelects();
 
 /* ───────── Build one card ───────── */
 function createCard(data,index){
@@ -179,10 +184,8 @@ function createCard(data,index){
 
   /* play-TTS */
   const play=document.createElement('button'); play.className='play-button'; play.textContent='🔊';
-  play.onclick=()=>{{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
-    const u=new SpeechSynthesisUtterance(txt),cfg=voiceSettings[lang];
-    if(cfg.voiceURI)u.voice=speechSynthesis.getVoices().find(v=>v.voiceURI===cfg.voiceURI); else u.lang=lang;
-    u.rate=cfg.rate; u.pitch=cfg.pitch; speechSynthesis.speak(u); }};
+  play.onclick=()=>{ const side=+card.dataset.side,lang=LANGS[side],txt=data[lang]||'';
+    window.FlashVoice.speak(txt, lang, voiceSettings[lang]); };
   btns.append(play);
   return card;
 }
