@@ -23,6 +23,7 @@
     ".extra-card.remembered{border-color:#43a047}",
     ".extra-card .remember-button.remembered{background:#43a047;color:#fff}",
     ".hold-note{text-align:center;color:#666;font-size:.9rem;margin:.35rem 0 0}",
+    ".flashcard.hold-pick,.extra-card.hold-pick{box-shadow:inset 0 0 0 4px #1976d2}",
     ".flashcard.hold-delete,.extra-card.hold-delete{box-shadow:inset 0 0 0 4px #c62828;background:#ffebee}",
     "#sure-delete{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1100;display:flex;align-items:center;justify-content:center;padding:1rem}",
     "#sure-delete[hidden]{display:none}",
@@ -30,9 +31,11 @@
     ".sure-box p{font-size:1.15rem;margin-bottom:1rem}",
     ".sure-actions{display:flex;gap:.6rem}",
     ".sure-actions button{flex:1;font-size:1.1rem;padding:.75rem;border-radius:8px;border:none;cursor:pointer}",
-    "#sure-yes{background:#c62828;color:#fff}",
-    "#sure-no{background:#eee;color:#222}",
-    "@media(prefers-color-scheme:dark){#add-word-form,.extra-card,.sure-box,#delete-part-page{background:#1c1c1e;color:#e4e4e4;border-color:#333}#add-word-form input{background:#111;color:#eee;border-color:#444}.hold-note{color:#bbb}.flashcard.hold-delete,.extra-card.hold-delete{background:#3a1d1d}#sure-no{background:#333;color:#eee}#delete-part-page{color:#ef9a9a}}"
+    "#sure-edit{background:#1976d2;color:#fff}",
+    "#sure-delete-choice,#sure-yes{background:#c62828;color:#fff}",
+    "#sure-no,#sure-cancel{background:#eee;color:#222}",
+    "#sure-cancel{margin-top:.6rem;width:100%}",
+    "@media(prefers-color-scheme:dark){#add-word-form,.extra-card,.sure-box,#delete-part-page{background:#1c1c1e;color:#e4e4e4;border-color:#333}#add-word-form input{background:#111;color:#eee;border-color:#444}.hold-note{color:#bbb}.flashcard.hold-delete,.extra-card.hold-delete{background:#3a1d1d}#sure-no,#sure-cancel{background:#333;color:#eee}#delete-part-page{color:#ef9a9a}}"
   ].join("");
   document.head.appendChild(style);
 
@@ -75,7 +78,7 @@
   form.append(fields, actions, error);
   var note = document.createElement("p");
   note.className = "hold-note";
-  note.textContent = "Hold a card. Then choose Yes or No.";
+  note.textContent = "Hold a card. Then choose Edit or Delete.";
   bar.append(openBtn, note, form);
   if (window.Pages.isPart(fileName())) {
     var delPage = document.createElement("button");
@@ -128,8 +131,15 @@
     return any ? card : null;
   }
 
-  openBtn.onclick = function () { form.hidden = false; openBtn.hidden = true; error.textContent = ""; };
+  openBtn.onclick = function () {
+    editingEl = null;
+    fillForm(null);
+    form.hidden = false;
+    openBtn.hidden = true;
+    error.textContent = "";
+  };
   cancelBtn.onclick = function () {
+    editingEl = null;
     form.hidden = true;
     openBtn.hidden = false;
     error.textContent = "";
@@ -203,10 +213,39 @@
     });
   }
 
+  var editingEl = null;
+  var pageLangs = [];
+  var readWords = function () { return null; };
+  var commitEdit = function () { return Promise.resolve(); };
+
+  function fillForm(words) {
+    pageLangs.forEach(function (lang) {
+      var input = fields.querySelector('[data-lang="' + lang + '"]');
+      if (input) input.value = (words && words[lang]) || "";
+    });
+  }
+
+  function startEdit(card) {
+    var words = readWords(card);
+    if (!words) {
+      error.textContent = "Wait a moment, then hold the card again.";
+      return;
+    }
+    editingEl = card;
+    fillForm(words);
+    error.textContent = "";
+    saveBtn.textContent = "Save word";
+    form.hidden = false;
+    openBtn.hidden = true;
+    form.scrollIntoView({ block: "center" });
+  }
+
   function wire(langs, saveCards) {
+    pageLangs = langs;
     drawFields(langs);
     form.onsubmit = function (e) {
       var card = readCard(langs);
+      var job;
       e.preventDefault();
       error.textContent = "";
       if (!card) {
@@ -214,8 +253,10 @@
         return;
       }
       saveBtn.disabled = true;
-      saveCards(card).then(function () {
+      job = editingEl ? commitEdit(editingEl, card) : saveCards(card);
+      job.then(function () {
         saveBtn.disabled = false;
+        editingEl = null;
         form.reset();
         form.hidden = true;
         openBtn.hidden = false;
@@ -234,39 +275,85 @@
   var sure = document.createElement("div");
   var sureBox = document.createElement("div");
   var sureText = document.createElement("p");
-  var sureActions = document.createElement("div");
+  var choiceRow = document.createElement("div");
+  var confirmRow = document.createElement("div");
+  var sureEdit = document.createElement("button");
+  var sureDelete = document.createElement("button");
+  var sureCancel = document.createElement("button");
   var sureYes = document.createElement("button");
   var sureNo = document.createElement("button");
   sure.id = "sure-delete";
   sure.hidden = true;
   sureBox.className = "sure-box";
-  sureText.textContent = "Are you sure you want to delete this card?";
-  sureActions.className = "sure-actions";
+  sureText.textContent = "Edit or delete this card?";
+  choiceRow.className = "sure-actions";
+  confirmRow.className = "sure-actions";
+  confirmRow.hidden = true;
+  sureEdit.id = "sure-edit";
+  sureEdit.type = "button";
+  sureEdit.textContent = "Edit";
+  sureDelete.id = "sure-delete-choice";
+  sureDelete.type = "button";
+  sureDelete.textContent = "Delete";
+  sureCancel.id = "sure-cancel";
+  sureCancel.type = "button";
+  sureCancel.textContent = "Cancel";
   sureYes.id = "sure-yes";
   sureYes.type = "button";
   sureYes.textContent = "Yes";
   sureNo.id = "sure-no";
   sureNo.type = "button";
   sureNo.textContent = "No";
-  sureActions.append(sureNo, sureYes);
-  sureBox.append(sureText, sureActions);
+  choiceRow.append(sureEdit, sureDelete);
+  confirmRow.append(sureNo, sureYes);
+  sureBox.append(sureText, choiceRow, confirmRow, sureCancel);
   sure.appendChild(sureBox);
   document.body.appendChild(sure);
 
   function closeAsk() {
     sure.hidden = true;
-    if (asking) asking.classList.remove("hold-delete");
+    choiceRow.hidden = false;
+    confirmRow.hidden = true;
+    sureCancel.hidden = false;
+    sureText.textContent = "Edit or delete this card?";
+    if (asking) {
+      asking.classList.remove("hold-delete", "hold-pick");
+      asking.dataset.held = "";
+    }
     asking = null;
   }
 
   function askSure(card) {
     if (!card || asking) return;
     asking = card;
-    card.classList.add("hold-delete");
+    card.classList.remove("hold-delete");
+    card.classList.add("hold-pick");
     card.dataset.held = "1";
+    choiceRow.hidden = false;
+    confirmRow.hidden = true;
+    sureCancel.hidden = false;
+    sureText.textContent = "Edit or delete this card?";
     sure.hidden = false;
   }
 
+  sureEdit.onclick = function (e) {
+    var card = asking;
+    e.preventDefault();
+    e.stopPropagation();
+    closeAsk();
+    if (card) startEdit(card);
+  };
+  sureDelete.onclick = function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!asking) return;
+    asking.classList.remove("hold-pick");
+    asking.classList.add("hold-delete");
+    sureText.textContent = "Are you sure you want to delete this card?";
+    choiceRow.hidden = true;
+    sureCancel.hidden = true;
+    confirmRow.hidden = false;
+  };
   sureYes.onclick = function (e) {
     var card = asking;
     e.preventDefault();
@@ -282,11 +369,12 @@
     e.stopPropagation();
     closeAsk();
   };
+  sureCancel.onclick = sureNo.onclick;
 
   function clearHold() {
     if (!hold) return;
     clearTimeout(hold.timer);
-    if (!asking || asking !== hold.card) hold.card.classList.remove("hold-delete");
+    if (!asking || asking !== hold.card) hold.card.classList.remove("hold-delete", "hold-pick");
     hold = null;
   }
 
@@ -318,7 +406,7 @@
     clearTimeout(hold.timer);
     hold = null;
     if (elapsed >= 350) askSure(card);
-    else card.classList.remove("hold-delete");
+    else card.classList.remove("hold-delete", "hold-pick");
   });
   container.addEventListener("contextmenu", function (e) {
     if (e.target.closest(".flashcard, .extra-card")) e.preventDefault();
@@ -337,6 +425,43 @@
     window.Pages.ready.then(function () { return window.Pages.open(pageId); }).then(function (page) {
       if (!page) return;
       var langs = (window.Pages.tracks[page.track] && window.Pages.tracks[page.track].langs) || ["en"];
+      function cardById(id) {
+        var found = null;
+        (page.cards || []).forEach(function (item) {
+          if (item.id === id) found = item;
+        });
+        return found;
+      }
+      readWords = function (card) {
+        var item = card._source || cardById(card.dataset.id);
+        var words = {};
+        if (!item) return null;
+        langs.forEach(function (lang) { words[lang] = item[lang] || ""; });
+        return words;
+      };
+      commitEdit = function (card, words) {
+        var source = card._source || cardById(card.dataset.id);
+        var cards;
+        var content;
+        if (!source) return Promise.resolve();
+        langs.forEach(function (lang) { source[lang] = words[lang] || ""; });
+        content = card.querySelector(".content");
+        if (content) content.textContent = source[langs[+card.dataset.side || 0]] || "";
+        cards = (page.cards || []).map(function (item) {
+          if (item.id !== card.dataset.id) return item;
+          var copy = { id: item.id };
+          langs.forEach(function (lang) { copy[lang] = source[lang] || ""; });
+          return copy;
+        });
+        return window.Pages.save({
+          id: page.id,
+          title: page.title,
+          track: page.track,
+          cards: cards
+        }).then(function (saved) {
+          page = saved;
+        });
+      };
       deleteHeld = function (card) {
         if (!card.dataset.id || !page.cards) return Promise.resolve();
         var cards = page.cards.filter(function (item) { return item.id !== card.dataset.id; });
@@ -373,12 +498,24 @@
     return window.Pages.loadExtras(id, track);
   }).then(function (page) {
     current = page || { cards: [] };
-    function persist(cards) {
-      return window.Pages.saveExtras(id, track, cards, current.hidden || []).then(function (saved) {
+    function persist(cards, hidden, edits) {
+      return window.Pages.saveExtras(
+        id,
+        track,
+        cards,
+        hidden == null ? (current.hidden || []) : hidden,
+        edits == null ? (current.edits || {}) : edits
+      ).then(function (saved) {
         current = saved;
         showExtraCards(saved.cards, langs, removeCard);
         hideOriginals();
       });
+    }
+    function showOriginal(card) {
+      var data = window.CARDS && window.CARDS[card.dataset.origin];
+      var content = card.querySelector(".content");
+      if (!data || !content) return;
+      content.textContent = data[langs[+card.dataset.side || 0]] || "";
     }
     function hideOriginals() {
       var hidden = {};
@@ -393,7 +530,49 @@
         }
         if (hidden[card.dataset.origin]) card.remove();
       });
+      container.querySelectorAll(".flashcard").forEach(function (card) {
+        var edit = (current.edits || {})[card.dataset.origin];
+        var data = window.CARDS && window.CARDS[card.dataset.origin];
+        if (!edit || !data) return;
+        langs.forEach(function (lang) { data[lang] = edit[lang] || ""; });
+        showOriginal(card);
+      });
     }
+    readWords = function (card) {
+      var words = {};
+      var data = null;
+      if (card.classList.contains("extra-card")) {
+        (current.cards || []).forEach(function (item) {
+          if (item.id === card.dataset.id) data = item;
+        });
+      } else if (window.CARDS) {
+        data = window.CARDS[card.dataset.origin];
+      }
+      if (!data) return null;
+      langs.forEach(function (lang) { words[lang] = data[lang] || ""; });
+      return words;
+    };
+    commitEdit = function (card, words) {
+      var edits;
+      if (card.classList.contains("extra-card")) {
+        var cards = (current.cards || []).map(function (item) {
+          if (item.id !== card.dataset.id) return item;
+          langs.forEach(function (lang) { item[lang] = words[lang] || ""; });
+          return item;
+        });
+        return persist(cards);
+      }
+      if (!card.dataset.origin || !window.CARDS || !window.CARDS[card.dataset.origin]) return Promise.resolve();
+      edits = {};
+      Object.keys(current.edits || {}).forEach(function (key) { edits[key] = current.edits[key]; });
+      edits[card.dataset.origin] = {};
+      langs.forEach(function (lang) {
+        edits[card.dataset.origin][lang] = words[lang] || "";
+        window.CARDS[card.dataset.origin][lang] = words[lang] || "";
+      });
+      showOriginal(card);
+      return persist(current.cards || [], current.hidden || [], edits);
+    };
     deleteHeld = function (card) {
       if (card.classList.contains("extra-card")) {
         return card.onremove ? card.onremove() : Promise.resolve();
@@ -403,7 +582,7 @@
       var hidden = (current.hidden || []).slice();
       if (hidden.indexOf(origin) === -1) hidden.push(origin);
       card.remove();
-      return window.Pages.saveExtras(id, track, current.cards || [], hidden).then(function (saved) {
+      return window.Pages.saveExtras(id, track, current.cards || [], hidden, current.edits || {}).then(function (saved) {
         current = saved;
       });
     };

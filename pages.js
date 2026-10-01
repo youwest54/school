@@ -180,7 +180,8 @@
       track: page.track,
       t: page.t,
       cards: page.cards || [],
-      hidden: page.hidden || []
+      hidden: page.hidden || [],
+      edits: page.edits || {}
     }));
   }
 
@@ -487,7 +488,7 @@
   }
 
   function blankExtra(id, track) {
-    return { id: id, title: "extra", track: track, t: 0, cards: [], hidden: [] };
+    return { id: id, title: "extra", track: track, t: 0, cards: [], hidden: [], edits: {} };
   }
 
   function loadExtras(id, track) {
@@ -519,13 +520,43 @@
     return out.slice(0, 300);
   }
 
-  function saveExtras(id, track, cards, hidden) {
+  function cleanEdits(track, edits) {
+    var langs = TRACKS[track].langs;
+    var out = {};
+    var count = 0;
+    if (!edits || typeof edits !== "object") return out;
+    Object.keys(edits).forEach(function (key) {
+      var src = edits[key];
+      var row = {};
+      var any = false;
+      if (!/^\d+$/.test(key) || count >= 300 || !src) return;
+      langs.forEach(function (lang) {
+        row[lang] = String(src[lang] || "").trim();
+        if (row[lang]) any = true;
+      });
+      if (any) {
+        out[key] = row;
+        count += 1;
+      }
+    });
+    return out;
+  }
+
+  function saveExtras(id, track, cards, hidden, edits) {
     var cleaned;
     if (!TRACKS[track] || !/^[a-z0-9]+$/.test(id || "")) return Promise.reject(new Error("language"));
     cleaned = (cards || []).map(function (card) {
       return cleanCard(track, card);
     }).filter(Boolean).slice(0, 40);
-    var page = { id: id, title: "extra", track: track, t: now(), cards: cleaned, hidden: cleanHidden(hidden) };
+    var page = {
+      id: id,
+      title: "extra",
+      track: track,
+      t: now(),
+      cards: cleaned,
+      hidden: cleanHidden(hidden),
+      edits: cleanEdits(track, edits)
+    };
     state.pages[id] = page;
     saveCache();
     return enqueue(function () {
