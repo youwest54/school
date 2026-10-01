@@ -17,7 +17,6 @@
   var partNumber;
   for (partNumber = 1; partNumber <= 18; partNumber++) PART_FILES["part " + partNumber + "_en.html"] = "en";
   for (partNumber = 1; partNumber <= 4; partNumber++) PART_FILES[partNumber + "_nl.html"] = "nl";
-  PART_FILES["money_en.html"] = "en";
   var listeners = [];
   var tail = Promise.resolve();
 
