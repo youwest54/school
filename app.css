@@ -1,0 +1,304 @@
+/* Shared iPhone look. Loaded after each page's own styles. */
+:root {
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --text: #1c1c1e;
+  --muted: #6e6e73;
+  --accent: #0a84ff;
+  --green: #34c759;
+  --red: #ff3b30;
+  --line: rgba(60, 60, 67, .16);
+  --shadow: 0 10px 28px rgba(28, 28, 30, .08);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+html { background: var(--bg); }
+
+body {
+  background: var(--bg) !important;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding-top: max(.85rem, var(--safe-t)) !important;
+}
+
+h1 {
+  color: var(--text) !important;
+  font-weight: 750;
+  letter-spacing: -.03em;
+  margin-top: .2rem;
+}
+
+.hint, .hold-note, .empty { color: var(--muted) !important; }
+
+.scroll-buffer { display: none !important; }
+
+.grid {
+  gap: .7rem !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  max-width: 520px;
+}
+
+.grid:not(:has(> a:nth-child(5))) {
+  grid-template-columns: 1fr !important;
+}
+
+.grid:not(:has(> a:nth-child(5))) a {
+  min-height: 4.6rem;
+  justify-content: flex-start;
+  padding-left: 1.15rem !important;
+  font-size: 1.15rem;
+}
+
+.grid a {
+  aspect-ratio: auto !important;
+  min-height: 5.4rem;
+  border-radius: 18px !important;
+  background: var(--card) !important;
+  color: var(--accent) !important;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  box-shadow: var(--shadow) !important;
+  border: 1px solid transparent;
+  margin-bottom: 0 !important;
+}
+
+.grid a:hover { background: var(--card) !important; color: var(--accent) !important; }
+.grid a:active { transform: scale(.98); }
+.grid a.done { filter: none !important; opacity: .5; }
+
+.done-toggle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e8f3ff !important;
+  color: var(--accent) !important;
+  font-size: .85rem !important;
+}
+
+.delete-page {
+  border: none !important;
+  background: #ffebea !important;
+  color: var(--red) !important;
+  border-radius: 999px !important;
+  font-weight: 700;
+  font-size: .72rem !important;
+  padding: .28rem .5rem !important;
+}
+
+.add-page, .primary {
+  border-radius: 16px !important;
+  background: var(--accent) !important;
+  color: #fff !important;
+  font-weight: 700;
+  min-height: 52px;
+  box-shadow: none !important;
+}
+
+.flashcard, .extra-card, .word, .choices a, #add-word-form, .modal-content, .sure-box {
+  background: var(--card) !important;
+  color: var(--text);
+  border: none !important;
+  border-radius: 22px !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.flashcard, .extra-card { padding: 1.15rem 1rem 1rem !important; }
+
+.content {
+  font-size: 1.28rem !important;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: center;
+  letter-spacing: -.02em;
+}
+
+.remember-button, .extra-remove, #cancel-add-word, .ghost, .remove {
+  background: #eef2f8 !important;
+  color: var(--text) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  min-height: 44px;
+  font-weight: 650;
+}
+
+.remember-button.remembered, .extra-card .remember-button.remembered {
+  background: var(--green) !important;
+  color: #fff !important;
+}
+
+.play-button, .extra-card .play-button {
+  width: 44px !important;
+  height: 44px !important;
+  font-size: 1.15rem !important;
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.remembered-badge { background: var(--green) !important; border-radius: 999px !important; }
+
+#open-add-word, #save-added-word, #sure-edit {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 14px !important;
+  min-height: 48px;
+  font-weight: 700;
+}
+
+#delete-part-page, #delete-page, #sure-delete-choice, #sure-yes, #page-sure-yes, .danger {
+  background: #ffebea !important;
+  color: var(--red) !important;
+  border: none !important;
+  border-radius: 14px !important;
+  min-height: 48px;
+  font-weight: 700;
+}
+
+#sure-yes, #sure-delete-choice, #page-sure-yes { background: var(--red) !important; color: #fff !important; }
+
+#sure-no, #sure-cancel, #page-sure-no {
+  background: #eef2f8 !important;
+  color: var(--text) !important;
+  border-radius: 14px !important;
+  min-height: 48px;
+  font-weight: 700;
+}
+
+.modal {
+  align-items: flex-end !important;
+  background: rgba(0, 0, 0, .35) !important;
+}
+
+.modal-content {
+  width: min(100%, 560px) !important;
+  max-width: 100% !important;
+  max-height: 82vh;
+  overflow: auto;
+  border-radius: 22px 22px 0 0 !important;
+  padding-bottom: calc(1.2rem + var(--safe-b)) !important;
+}
+
+#sure-delete, #page-sure { align-items: flex-end; padding: 0 !important; }
+.sure-box, #page-sure .sure-box {
+  width: min(100%, 560px) !important;
+  border-radius: 22px 22px 0 0 !important;
+  padding: 1.2rem 1rem calc(1rem + var(--safe-b)) !important;
+}
+
+input[type=text], #add-word-form input, select {
+  border-radius: 12px !important;
+  border: 1px solid var(--line) !important;
+  min-height: 46px;
+  font-size: 1rem !important;
+  background: #fff;
+  color: var(--text);
+}
+
+body:has(#return-button)::after,
+body:has(#settings-button)::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(4.7rem + var(--safe-b));
+  background: rgba(255, 255, 255, .9);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+  border-top: .5px solid var(--line);
+  z-index: 1000;
+}
+
+body:has(#return-button),
+body:has(#settings-button) {
+  padding-bottom: calc(6.4rem + var(--safe-b)) !important;
+}
+
+#return-button, #flip-all-button, #settings-button {
+  position: fixed !important;
+  bottom: calc(var(--safe-b) + .55rem) !important;
+  height: 46px !important;
+  width: calc(33.33% - 14px) !important;
+  border-radius: 14px !important;
+  font-size: .95rem !important;
+  font-weight: 750 !important;
+  letter-spacing: -.01em;
+  box-shadow: none !important;
+  z-index: 1003 !important;
+  opacity: 1 !important;
+}
+
+#return-button {
+  left: 10px !important;
+  right: auto !important;
+  background: #e8f3ff !important;
+  color: var(--accent) !important;
+}
+
+#flip-all-button {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
+}
+
+#settings-button {
+  right: 10px !important;
+  left: auto !important;
+  background: var(--accent) !important;
+  color: #fff !important;
+}
+
+body:not(:has(#flip-all-button)) #return-button {
+  width: auto !important;
+  min-width: 5.5rem;
+  padding: 0 1.1rem !important;
+}
+
+body.scrolled #return-button { transform: none !important; opacity: 1 !important; }
+body.scrolled #flip-all-button { transform: translateX(-50%) !important; opacity: 1 !important; }
+
+#back {
+  display: inline-flex !important;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 .8rem;
+  border-radius: 999px;
+  background: #e8f3ff;
+  color: var(--accent) !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.flashcard.hold-pick, .extra-card.hold-pick { box-shadow: inset 0 0 0 3px var(--accent) !important; }
+.flashcard.hold-delete, .extra-card.hold-delete { box-shadow: inset 0 0 0 3px var(--red) !important; background: #fff5f5 !important; }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --card: #1c1c1e;
+    --text: #f2f2f7;
+    --muted: #98989f;
+    --line: rgba(255, 255, 255, .12);
+    --shadow: none;
+  }
+  .done-toggle, #return-button, #back { background: #1a3352 !important; }
+  .remember-button, .extra-remove, #cancel-add-word, .ghost, .remove, #sure-no, #sure-cancel, #page-sure-no {
+    background: #2c2c2e !important;
+    color: var(--text) !important;
+  }
+  .delete-page, #delete-part-page, #delete-page, .danger { background: #3a1d1d !important; }
+  #flip-all-button { background: #2c2c2e !important; color: #fff !important; }
+  body:has(#return-button)::after,
+  body:has(#settings-button)::after { background: rgba(28, 28, 30, .9); }
+  input[type=text], #add-word-form input, select {
+    background: #111 !important;
+    color: #fff !important;
+  }
+  .flashcard.hold-delete, .extra-card.hold-delete { background: #3a1d1d !important; }
+}

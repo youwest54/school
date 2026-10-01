@@ -4,6 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport"
         content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+
   <title>Select Your Language</title>
 
   <style>
@@ -106,19 +111,16 @@
   </style>
 </head>
 <body>
-  <h1>Welcome! Choose your language:</h1>
-
-  <div class="scroll-buffer"></div>
+  <h1>Flashcards</h1>
+  <p class="hint">Choose a language. Marks and words stay on every phone.</p>
 
   <nav class="grid">
-    <a href="index_en.html?v=7">English</a>
-    <a href="index_es.html?v=7">Español</a>
-    <a href="index_nl.html?v=7">Nederlands</a>
+    <a href="index_en.html?v=8">English</a>
+    <a href="index_es.html?v=8">Español</a>
+    <a href="index_nl.html?v=8">Nederlands</a>
   </nav>
   <a class="add-page" href="new.html">＋ Add new page</a>
-  <p class="hint">Make a new flashcard page in English, Spanish, or Dutch. The words are saved and show on every computer.</p>
-
-  <div class="scroll-buffer"></div>
+  <p class="hint">Or add your own page in English, Spanish, or Dutch.</p>
 
   
 
@@ -149,5 +151,7 @@
     document.addEventListener('scroll',()=>document.body.classList.
       toggle('scrolled',window.scrollY>40));
   </script>
+<link rel="stylesheet" href="app.css?v=1">
+<script src="app.js?v=1"></script>
 </body>
 </html>

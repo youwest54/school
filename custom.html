@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+
 <title>Flashcards</title>
 <style>
 :root{--pad:clamp(.75rem,3vw,1rem);--fs-body:clamp(1rem,4vw,1.15rem);--fs-h1:clamp(1.4rem,6vw,1.8rem)}
@@ -281,5 +286,7 @@ window.Pages.ready.then(function () { return window.Pages.open(pageId); }).then(
   document.getElementById("card-container").innerHTML = '<p class="empty">Could not open this page. Check the internet and try again.</p>';
 });
 </script>
+<link rel="stylesheet" href="app.css?v=1">
+<script src="app.js?v=1"></script>
 </body>
 </html>
