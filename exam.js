@@ -24,7 +24,7 @@
   var names = { en: "English", es: "Spanish", nl: "Dutch" };
   title.textContent = (names[track] || "Exam") + " exam";
   document.getElementById("return-button").href = home;
-  document.getElementById("fav-page").href = "fav.html?v=1&track=" + track;
+  document.getElementById("fav-page").href = "fav.html?v=2&track=" + track;
 
   var voiceSettings = {};
   try { voiceSettings = JSON.parse(localStorage.getItem("flashcardVoiceSettings") || "{}"); } catch (e) {}
