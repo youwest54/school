@@ -10,6 +10,9 @@
   var score = document.getElementById("score");
   var from = document.getElementById("from");
   var cardBox = document.getElementById("card");
+  var langLabel = document.getElementById("lang");
+  var words = document.getElementById("words");
+  var playBtn = document.getElementById("play");
   var showBtn = document.getElementById("show");
   var againBtn = document.getElementById("again");
   var knewBtn = document.getElementById("knew");
@@ -64,25 +67,14 @@
     score.textContent = "I knew it: " + knew + "    Again: " + again;
   }
 
-  function line(lang, text) {
-    var row = document.createElement("div");
-    var label = document.createElement("p");
-    var words = document.createElement("p");
-    var play = document.createElement("button");
-    row.className = "exam-line";
-    label.className = "exam-lang";
-    label.textContent = window.Pages.names[lang] || lang;
-    words.className = "exam-words";
+  function face(lang) {
+    var text = (current && current.card[lang]) || "";
+    langLabel.textContent = window.Pages.names[lang] || lang;
     words.textContent = text || "—";
-    play.type = "button";
-    play.className = "exam-play";
-    play.textContent = "Speak";
-    play.onclick = function (e) {
+    playBtn.onclick = function (e) {
       e.stopPropagation();
       speak(text, lang);
     };
-    row.append(label, words, play);
-    return row;
   }
 
   function showDone() {
@@ -121,15 +113,14 @@
     againBtn.hidden = true;
     knewBtn.hidden = true;
     from.textContent = current.from;
-    cardBox.innerHTML = "";
-    cardBox.appendChild(line(langs[0], current.card[langs[0]]));
+    face(langs[0]);
     paintScore();
   }
 
   function reveal() {
     if (!current || revealed) return;
     if (shown >= langs.length) return;
-    cardBox.appendChild(line(langs[shown], current.card[langs[shown]]));
+    face(langs[shown]);
     shown += 1;
     if (shown >= langs.length) {
       revealed = true;
@@ -173,10 +164,19 @@
     showCard();
   }
 
-  showBtn.onclick = reveal;
+  showBtn.onclick = function (e) {
+    e.stopPropagation();
+    reveal();
+  };
+  againBtn.onclick = function (e) {
+    e.stopPropagation();
+    advance("again");
+  };
+  knewBtn.onclick = function (e) {
+    e.stopPropagation();
+    advance("knew");
+  };
   cardBox.onclick = reveal;
-  againBtn.onclick = function () { advance("again"); };
-  knewBtn.onclick = function () { advance("knew"); };
   retryBtn.onclick = function () { start(pile); };
 
   function addPartCards(part, extra) {
