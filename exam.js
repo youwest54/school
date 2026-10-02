@@ -18,6 +18,7 @@
   var showBtn = document.getElementById("show");
   var againBtn = document.getElementById("again");
   var knewBtn = document.getElementById("knew");
+  var dock = document.getElementById("dock");
   var retryBtn = document.getElementById("retry");
   var empty = document.getElementById("empty");
   var names = { en: "English", es: "Spanish", nl: "Dutch" };
@@ -94,6 +95,7 @@
     current = null;
     cardBox.hidden = true;
     from.hidden = true;
+    dock.hidden = true;
     showBtn.hidden = true;
     againBtn.hidden = true;
     knewBtn.hidden = true;
@@ -118,6 +120,7 @@
     current = pile[cursor];
     shown = 1;
     cardBox.hidden = false;
+    dock.hidden = false;
     from.hidden = false;
     empty.hidden = true;
     retryBtn.hidden = true;
@@ -153,6 +156,7 @@
     if (!pile.length) {
       cardBox.hidden = true;
       from.hidden = true;
+      dock.hidden = true;
       showBtn.hidden = true;
       againBtn.hidden = true;
       knewBtn.hidden = true;

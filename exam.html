@@ -49,8 +49,13 @@
       position:static;transform:none;display:block;margin:.35rem auto 0;
       box-shadow:none
     }
-    .card-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
-    .card-actions button,.retry{
+    .exam-dock{
+      position:fixed;z-index:1004;left:50%;transform:translateX(-50%);
+      width:min(520px,calc(100% - 24px));
+      bottom:calc(env(safe-area-inset-bottom) + 4.6rem);
+      display:grid;grid-template-columns:1fr 1fr;gap:.5rem
+    }
+    .exam-dock button,.retry{
       height:50px;min-height:50px;width:100%;border:none;border-radius:14px;
       font-size:1rem;font-weight:750;padding:0 .6rem
     }
@@ -87,19 +92,22 @@
       <p id="words" class="exam-words"></p>
       <button id="more" type="button" hidden>Read more</button>
     </div>
-    <div class="card-actions">
-      <button id="show" type="button">Show English</button>
-      <button id="again" type="button">Again</button>
-      <button id="knew" type="button">I knew it</button>
-    </div>
+  </div>
+  <div id="dock" class="exam-dock" hidden>
+    <button id="show" type="button">Show English</button>
+    <button id="again" type="button">Again</button>
+    <button id="knew" type="button">I knew it</button>
   </div>
   <p id="empty" class="hint" hidden></p>
   <button id="retry" class="retry" type="button" hidden>Start again</button>
   <a id="return-button" href="index.html" title="Back">Back</a>
   <script src="pages.js?v=8"></script>
   <script src="voice.js?v=4"></script>
-  <script src="exam.js?v=5"></script>
+  <script src="exam.js?v=6"></script>
   <link rel="stylesheet" href="app.css?v=2">
+  <style>
+    body:has(#return-button){padding-bottom:calc(14.5rem + env(safe-area-inset-bottom)) !important}
+  </style>
   <script src="app.js?v=1"></script>
 </body>
 </html>
