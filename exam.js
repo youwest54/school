@@ -24,6 +24,7 @@
 
   var pile = [];
   var cursor = 0;
+  var shown = 1;
   var revealed = false;
   var knew = 0;
   var again = 0;
@@ -97,18 +98,26 @@
     paintScore();
   }
 
+  function nextLabel() {
+    var lang = langs[shown];
+    var name = (lang && window.Pages.names[lang]) || "answer";
+    return "Show " + name;
+  }
+
   function showCard() {
     if (cursor >= pile.length) {
       showDone();
       return;
     }
     current = pile[cursor];
+    shown = 1;
     revealed = false;
     cardBox.hidden = false;
     from.hidden = false;
     empty.hidden = true;
     retryBtn.hidden = true;
     showBtn.hidden = false;
+    showBtn.textContent = nextLabel();
     againBtn.hidden = true;
     knewBtn.hidden = true;
     from.textContent = current.from;
@@ -119,14 +128,17 @@
 
   function reveal() {
     if (!current || revealed) return;
-    revealed = true;
-    cardBox.innerHTML = "";
-    langs.forEach(function (lang) {
-      cardBox.appendChild(line(lang, current.card[lang]));
-    });
-    showBtn.hidden = true;
-    againBtn.hidden = false;
-    knewBtn.hidden = false;
+    if (shown >= langs.length) return;
+    cardBox.appendChild(line(langs[shown], current.card[langs[shown]]));
+    shown += 1;
+    if (shown >= langs.length) {
+      revealed = true;
+      showBtn.hidden = true;
+      againBtn.hidden = false;
+      knewBtn.hidden = false;
+      return;
+    }
+    showBtn.textContent = nextLabel();
   }
 
   function advance(kind) {
