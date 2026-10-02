@@ -87,6 +87,23 @@ h1 {
   padding: .28rem .5rem !important;
 }
 
+a.exam {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 520px;
+  min-height: 54px;
+  margin: .15rem auto .7rem;
+  background: #ffd000 !important;
+  color: #1c1c1e !important;
+  font-weight: 800;
+  font-size: 1.15rem;
+  text-decoration: none;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
 .add-page, .primary {
   border-radius: 16px !important;
   background: var(--accent) !important;
@@ -215,6 +232,10 @@ body:has(#settings-button)::after {
 body:has(#return-button),
 body:has(#settings-button) {
   padding-bottom: calc(6.4rem + var(--safe-b)) !important;
+}
+
+body:has(.exam-actions) {
+  padding-bottom: calc(13rem + var(--safe-b)) !important;
 }
 
 #return-button, #flip-all-button, #settings-button {
