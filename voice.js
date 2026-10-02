@@ -4,7 +4,7 @@
   var LOCALES = { ar: "ar-SA", en: "en-US", fr: "fr-FR", es: "es-ES", nl: "nl-NL" };
   var PREFERRED = {
     ar: ["zariyah", "hamed", "naayf", "salma", "google"],
-    en: ["aria", "jenny", "guy", "sonia", "libby", "ryan", "google us english", "samantha", "daniel"],
+    en: ["aria", "jenny", "guy", "michelle", "andrew", "google us english", "samantha", "alex", "aaron"],
     fr: ["denise", "henri", "vivienne", "google français", "google francais", "thomas", "amelie"],
     es: ["elvira", "helena", "laura", "pablo", "google español", "google espanol", "monica"],
     nl: ["colette", "fenna", "maarten", "google nederlands", "xander"]
@@ -21,8 +21,18 @@
     localStorage.setItem("flashcardVoiceVersion", VERSION);
   }
 
+  function voiceCode(voice) {
+    return (voice.lang || "").toLowerCase().replace(/_/g, "-");
+  }
+
+  function isAmerican(voice) {
+    var code = voiceCode(voice);
+    return code === "en-us" || code.indexOf("en-us-") === 0;
+  }
+
   function matches(voice, lang) {
-    return (voice.lang || "").toLowerCase().indexOf(lang) === 0;
+    if (lang === "en") return isAmerican(voice);
+    return voiceCode(voice).indexOf(lang) === 0;
   }
 
   function score(voice, lang) {
@@ -87,8 +97,17 @@
     return parts;
   }
 
+  function chosenVoice(lang, cfg) {
+    if (!(cfg && cfg.voiceURI)) return null;
+    var voice = speechSynthesis.getVoices().filter(function (v) { return v.voiceURI === cfg.voiceURI; })[0] || null;
+    if (!voice) return null;
+    if (lang === "en" && !isAmerican(voice)) return null;
+    return voice;
+  }
+
   function fetchAudio(lang, text) {
-    var path = "/api/v1/audio/" + encodeURIComponent(lang) + "/" + encodeURIComponent(text);
+    var code = LOCALES[lang] || lang;
+    var path = "/api/v1/audio/" + encodeURIComponent(code) + "/" + encodeURIComponent(text);
     var i = 0;
     function tryHost() {
       if (i >= HOSTS.length) return Promise.resolve(null);
@@ -109,11 +128,7 @@
     synth.cancel();
     if (keepAlive) clearInterval(keepAlive);
     var u = new SpeechSynthesisUtterance(text);
-    var voice = null;
-    if (cfg && cfg.voiceURI) {
-      voice = synth.getVoices().filter(function (v) { return v.voiceURI === cfg.voiceURI; })[0] || null;
-    }
-    if (!voice) voice = bestVoice(lang);
+    var voice = chosenVoice(lang, cfg) || bestVoice(lang);
     if (voice) {
       u.voice = voice;
       u.lang = voice.lang;
@@ -171,7 +186,7 @@
       currentAudio.pause();
       currentAudio = null;
     }
-    if (cfg && cfg.voiceURI) {
+    if (chosenVoice(lang, cfg)) {
       speakLocal(text, lang, cfg);
       return;
     }
