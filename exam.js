@@ -11,9 +11,7 @@
   var from = document.getElementById("from");
   var cardBox = document.getElementById("card");
   var langLabel = document.getElementById("lang");
-  var wordBox = document.getElementById("wordbox");
   var words = document.getElementById("words");
-  var moreBtn = document.getElementById("more");
   var playBtn = document.getElementById("play");
   var showBtn = document.getElementById("show");
   var againBtn = document.getElementById("again");
@@ -31,7 +29,6 @@
   var pile = [];
   var cursor = 0;
   var shown = 1;
-  var faceToken = 0;
   var knew = 0;
   var again = 0;
   var current = null;
@@ -72,23 +69,13 @@
 
   function face(lang) {
     var text = (current && current.card[lang]) || "";
-    var token = ++faceToken;
     langLabel.textContent = window.Pages.names[lang] || lang;
     words.dir = lang === "ar" ? "rtl" : "ltr";
     words.textContent = text || "—";
-    wordBox.classList.remove("open", "has-more");
-    moreBtn.hidden = true;
-    moreBtn.textContent = "Read more";
     playBtn.onclick = function (e) {
       e.stopPropagation();
       speak(text, lang);
     };
-    requestAnimationFrame(function () {
-      if (token !== faceToken) return;
-      var longText = words.scrollWidth > words.clientWidth + 1;
-      wordBox.classList.toggle("has-more", longText);
-      moreBtn.hidden = !longText;
-    });
   }
 
   function showDone() {
@@ -99,7 +86,6 @@
     showBtn.hidden = true;
     againBtn.hidden = true;
     knewBtn.hidden = true;
-    moreBtn.hidden = true;
     empty.hidden = false;
     empty.textContent = "Finished. I knew it: " + knew + ". Again: " + again + ".";
     retryBtn.hidden = false;
@@ -160,7 +146,6 @@
       showBtn.hidden = true;
       againBtn.hidden = true;
       knewBtn.hidden = true;
-      moreBtn.hidden = true;
       retryBtn.hidden = true;
       empty.hidden = false;
       empty.textContent = "No words yet.";
@@ -170,11 +155,6 @@
     showCard();
   }
 
-  moreBtn.onclick = function (e) {
-    e.stopPropagation();
-    var open = wordBox.classList.toggle("open");
-    moreBtn.textContent = open ? "Show less" : "Read more";
-  };
   showBtn.onclick = function (e) {
     e.stopPropagation();
     reveal();

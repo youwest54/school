@@ -27,27 +27,10 @@
       margin:0;padding:.28rem .7rem;border-radius:999px;
       background:#e8f3ff;color:#0a84ff;font-size:.75rem;font-weight:750
     }
-    .exam-wordbox{position:relative}
     .exam-words{
-      height:56px;margin:0;display:block;line-height:56px;text-align:center;
-      overflow:hidden;white-space:nowrap;font-size:1.4rem;font-weight:750;
-      letter-spacing:-.02em
-    }
-    .exam-wordbox.has-more:not(.open) .exam-words{text-align:start;padding-inline-end:6.4rem}
-    #more{
-      position:absolute;inset-inline-end:0;top:50%;transform:translateY(-50%);
-      height:32px;padding:0 .7rem;border:none;border-radius:999px;
-      background:#fff;color:#0a84ff;font-size:.85rem;font-weight:750
-    }
-    .exam-words[dir="ltr"] + #more{box-shadow:-14px 0 12px #fff}
-    .exam-words[dir="rtl"] + #more{box-shadow:14px 0 12px #fff}
-    .exam-wordbox.open .exam-words{
-      display:block;height:auto;min-height:56px;padding:.35rem 0;
-      white-space:normal;overflow:visible;text-align:center
-    }
-    .exam-wordbox.open #more{
-      position:static;transform:none;display:block;margin:.35rem auto 0;
-      box-shadow:none
+      margin:0;min-height:56px;display:grid;place-items:center;text-align:center;
+      white-space:normal;overflow:visible;font-size:1.35rem;font-weight:750;
+      letter-spacing:-.02em;line-height:1.35;padding:.2rem 0
     }
     .exam-dock{
       position:fixed;z-index:1004;left:50%;transform:translateX(-50%);
@@ -72,9 +55,6 @@
       .exam-card{background:#1c1c1e}
       .exam-words{color:#f2f2f7}
       .exam-lang,#play{background:#1a3352;color:#64b5ff}
-      #more{background:#1c1c1e;color:#64b5ff}
-      .exam-words[dir="ltr"] + #more{box-shadow:-14px 0 12px #1c1c1e}
-      .exam-words[dir="rtl"] + #more{box-shadow:14px 0 12px #1c1c1e}
       #again,.retry{background:#2c2c2e;color:#f2f2f7}
     }
   </style>
@@ -88,10 +68,7 @@
       <p id="lang" class="exam-lang"></p>
       <button id="play" type="button">Speak</button>
     </div>
-    <div id="wordbox" class="exam-wordbox">
-      <p id="words" class="exam-words"></p>
-      <button id="more" type="button" hidden>Read more</button>
-    </div>
+    <p id="words" class="exam-words"></p>
   </div>
   <div id="dock" class="exam-dock" hidden>
     <button id="show" type="button">Show English</button>
@@ -103,7 +80,7 @@
   <a id="return-button" href="index.html" title="Back">Back</a>
   <script src="pages.js?v=8"></script>
   <script src="voice.js?v=4"></script>
-  <script src="exam.js?v=6"></script>
+  <script src="exam.js?v=7"></script>
   <link rel="stylesheet" href="app.css?v=2">
   <style>
     body:has(#return-button){padding-bottom:calc(14.5rem + env(safe-area-inset-bottom)) !important}
