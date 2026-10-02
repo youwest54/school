@@ -28,7 +28,6 @@
   var pile = [];
   var cursor = 0;
   var shown = 1;
-  var revealed = false;
   var knew = 0;
   var again = 0;
   var current = null;
@@ -103,41 +102,28 @@
     }
     current = pile[cursor];
     shown = 1;
-    revealed = false;
     cardBox.hidden = false;
     from.hidden = false;
     empty.hidden = true;
     retryBtn.hidden = true;
     showBtn.hidden = false;
+    againBtn.hidden = false;
+    knewBtn.hidden = false;
     showBtn.textContent = nextLabel();
-    againBtn.hidden = true;
-    knewBtn.hidden = true;
     from.textContent = current.from;
     face(langs[0]);
     paintScore();
   }
 
   function reveal() {
-    if (!current || revealed) return;
-    if (shown >= langs.length) return;
+    if (!current) return;
     face(langs[shown]);
-    shown += 1;
-    if (shown >= langs.length) {
-      revealed = true;
-      showBtn.hidden = true;
-      againBtn.hidden = false;
-      knewBtn.hidden = false;
-      return;
-    }
+    shown = (shown + 1) % langs.length;
     showBtn.textContent = nextLabel();
   }
 
   function advance(kind) {
     if (!current) return;
-    if (!revealed) {
-      reveal();
-      return;
-    }
     if (kind === "knew") knew += 1;
     if (kind === "again") again += 1;
     cursor += 1;

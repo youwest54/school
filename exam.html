@@ -33,7 +33,7 @@
       letter-spacing:-.02em;line-height:1.2;scrollbar-width:none
     }
     .exam-words::-webkit-scrollbar{display:none}
-    .card-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;height:50px}
+    .card-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
     .card-actions button,.retry{
       height:50px;min-height:50px;width:100%;border:none;border-radius:14px;
       font-size:1rem;font-weight:750;padding:0 .6rem
@@ -67,8 +67,8 @@
     <p id="words" class="exam-words"></p>
     <div class="card-actions">
       <button id="show" type="button">Show English</button>
-      <button id="again" type="button" hidden>Again</button>
-      <button id="knew" type="button" hidden>I knew it</button>
+      <button id="again" type="button">Again</button>
+      <button id="knew" type="button">I knew it</button>
     </div>
   </div>
   <p id="empty" class="hint" hidden></p>
@@ -76,7 +76,7 @@
   <a id="return-button" href="index.html" title="Back">Back</a>
   <script src="pages.js?v=8"></script>
   <script src="voice.js?v=4"></script>
-  <script src="exam.js?v=3"></script>
+  <script src="exam.js?v=4"></script>
   <link rel="stylesheet" href="app.css?v=2">
   <script src="app.js?v=1"></script>
 </body>
