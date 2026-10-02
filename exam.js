@@ -142,7 +142,12 @@
 
   function advance(kind) {
     if (!current) return;
-    if (kind === "knew") knew += 1;
+    if (kind === "knew") {
+      knew += 1;
+      if (current.remember && window.Marks && window.Marks.remember) {
+        window.Marks.remember(current.remember.page, current.remember.key);
+      }
+    }
     if (kind === "again") again += 1;
     cursor += 1;
     showCard();
@@ -211,15 +216,22 @@
     var items = [];
     (part.cards || []).forEach(function (card, index) {
       if (hidden[String(index)]) return;
+      var savedCard = copyCard(card, edits[String(index)] || null);
       items.push({
         from: part.name,
-        card: copyCard(card, edits[String(index)] || null),
-        key: window.Pages.favKey(copyCard(card, edits[String(index)] || null), langs)
+        card: savedCard,
+        key: window.Pages.favKey(savedCard, langs),
+        remember: { page: part.file, key: String(index) }
       });
     });
     ((extra && extra.cards) || []).forEach(function (card) {
       var extraCard = copyCard(card, null);
-      items.push({ from: part.name, card: extraCard, key: window.Pages.favKey(extraCard, langs) });
+      items.push({
+        from: part.name,
+        card: extraCard,
+        key: window.Pages.favKey(extraCard, langs),
+        remember: card.id ? { page: part.file, key: String(card.id) } : null
+      });
     });
     return items;
   }
@@ -245,7 +257,12 @@
         if (!full || !(full.cards || []).length) return [];
         return full.cards.map(function (card) {
           var saved = copyCard(card, null);
-          return { from: full.title || "My page", card: saved, key: window.Pages.favKey(saved, langs) };
+          return {
+            from: full.title || "My page",
+            card: saved,
+            key: window.Pages.favKey(saved, langs),
+            remember: card.id ? { page: "custom_" + full.id + ".html", key: String(card.id) } : null
+          };
         });
       }));
     });
