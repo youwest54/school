@@ -87,7 +87,17 @@ h1 {
   padding: .28rem .5rem !important;
 }
 
-a.exam {
+.lang-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .6rem;
+  width: 100%;
+  max-width: 520px;
+  margin: .15rem auto .35rem;
+}
+
+a.exam,
+a.fav-link {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -95,13 +105,27 @@ a.exam {
   max-width: 520px;
   min-height: 54px;
   margin: .15rem auto .7rem;
-  background: #ffd000 !important;
-  color: #1c1c1e !important;
   font-weight: 800;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   text-decoration: none;
   border-radius: 16px;
   box-shadow: var(--shadow);
+}
+
+a.exam {
+  background: #ffd000 !important;
+  color: #1c1c1e !important;
+}
+
+a.fav-link {
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
+.lang-actions a.exam,
+.lang-actions a.fav-link {
+  margin: 0;
+  max-width: none;
 }
 
 .add-page, .primary {

@@ -14,7 +14,17 @@
   <style>
     body{margin:0;padding:1rem;text-align:center}
     h1{margin:.15rem 0 .15rem;font-size:1.55rem}
-    #score,.from{color:#6e6e73;margin:.3rem auto;max-width:520px}
+    .exam-score{
+      display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:.4rem;
+      max-width:520px;margin:.3rem auto
+    }
+    #score,.from{color:#6e6e73;margin:0}
+    #score{text-align:left}
+    #reset,#fav-page{
+      height:34px;padding:0 .75rem;border:none;border-radius:999px;
+      background:#eef2f8;color:#1c1c1e;font-weight:750;font-size:.85rem;
+      text-decoration:none;display:inline-flex;align-items:center;justify-content:center
+    }
     .from{font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
     .exam-card{
       background:#fff;border-radius:22px;cursor:pointer;
@@ -22,7 +32,12 @@
       padding:1rem;margin:.85rem auto 0;max-width:520px;
       display:flex;flex-direction:column;gap:.75rem
     }
-    .exam-top{display:flex;align-items:center;justify-content:space-between;height:36px}
+    .exam-top{display:flex;align-items:center;justify-content:space-between;gap:.4rem;height:36px}
+    #fav{
+      height:36px;min-width:104px;padding:0 .7rem;border:none;border-radius:999px;
+      background:#eef2f8;color:#1c1c1e;font-size:.85rem;font-weight:750
+    }
+    #fav.on{background:#ffd000;color:#1c1c1e}
     .exam-lang{
       margin:0;padding:.28rem .7rem;border-radius:999px;
       background:#e8f3ff;color:#0a84ff;font-size:.75rem;font-weight:750
@@ -55,17 +70,24 @@
       .exam-card{background:#1c1c1e}
       .exam-words{color:#f2f2f7}
       .exam-lang,#play{background:#1a3352;color:#64b5ff}
+      #reset,#fav-page,#fav{background:#2c2c2e;color:#f2f2f7}
+      #fav.on{background:#ffd000;color:#1c1c1e}
       #again,.retry{background:#2c2c2e;color:#f2f2f7}
     }
   </style>
 </head>
 <body>
   <h1 id="title">Exam</h1>
-  <p id="score" class="hint">Loading words…</p>
+  <div class="exam-score">
+    <p id="score" class="hint">Loading words…</p>
+    <button id="reset" type="button" hidden>Reset</button>
+    <a id="fav-page" href="fav.html?v=1">Favorites</a>
+  </div>
   <p id="from" class="from" hidden></p>
   <div id="card" class="exam-card" hidden>
     <div class="exam-top">
       <p id="lang" class="exam-lang"></p>
+      <button id="fav" type="button" hidden>Favorite</button>
       <button id="play" type="button">Speak</button>
     </div>
     <p id="words" class="exam-words"></p>
@@ -78,10 +100,10 @@
   <p id="empty" class="hint" hidden></p>
   <button id="retry" class="retry" type="button" hidden>Start again</button>
   <a id="return-button" href="index.html" title="Back">Back</a>
-  <script src="pages.js?v=8"></script>
+  <script src="pages.js?v=9"></script>
   <script src="voice.js?v=4"></script>
-  <script src="exam.js?v=7"></script>
-  <link rel="stylesheet" href="app.css?v=2">
+  <script src="exam.js?v=8"></script>
+  <link rel="stylesheet" href="app.css?v=3">
   <style>
     body:has(#return-button){padding-bottom:calc(14.5rem + env(safe-area-inset-bottom)) !important}
   </style>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Learn">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon3-180.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Favorites</title>
+  <style>
+    body{margin:0;padding:1rem;text-align:center}
+    h1{margin:.15rem 0 .35rem;font-size:1.55rem}
+    #list{max-width:520px;margin:0 auto;display:grid;gap:.75rem}
+    .fav-card{
+      background:#fff;border-radius:22px;box-shadow:0 10px 28px rgba(28,28,30,.08);
+      padding:1rem;text-align:left
+    }
+    .fav-from{margin:0 0 .45rem;color:#6e6e73;font-size:.78rem;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+    .fav-line{padding:.55rem 0;border-bottom:1px solid rgba(60,60,67,.12)}
+    .fav-line:last-of-type{border-bottom:none}
+    .fav-lang{margin:0;color:#6e6e73;font-size:.75rem;font-weight:750}
+    .fav-words{margin:.15rem 0 0;font-size:1.15rem;font-weight:750;line-height:1.35}
+    .fav-actions{display:flex;gap:.45rem;margin-top:.7rem}
+    .fav-actions button{
+      height:40px;border:none;border-radius:12px;font-weight:750;padding:0 .8rem
+    }
+    .fav-speak{background:#e8f3ff;color:#0a84ff}
+    .fav-remove{margin-left:auto;background:#ffebea;color:#ff3b30}
+    #empty{color:#6e6e73}
+    @media(prefers-color-scheme:dark){
+      .fav-card{background:#1c1c1e}
+      .fav-words{color:#f2f2f7}
+      .fav-speak{background:#1a3352;color:#64b5ff}
+      .fav-remove{background:#3a1d1d;color:#ff8a80}
+    }
+  </style>
+</head>
+<body>
+  <h1 id="title">Favorites</h1>
+  <div id="list"></div>
+  <p id="empty" class="hint" hidden>No favorites yet. Open Exam and tap Favorite.</p>
+  <a id="return-button" href="index.html" title="Back">Back</a>
+  <script src="pages.js?v=9"></script>
+  <script src="voice.js?v=4"></script>
+  <script src="fav.js?v=1"></script>
+  <link rel="stylesheet" href="app.css?v=3">
+  <script src="app.js?v=1"></script>
+</body>
+</html>

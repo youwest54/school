@@ -12,6 +12,8 @@
   var cardBox = document.getElementById("card");
   var langLabel = document.getElementById("lang");
   var words = document.getElementById("words");
+  var favBtn = document.getElementById("fav");
+  var resetBtn = document.getElementById("reset");
   var playBtn = document.getElementById("play");
   var showBtn = document.getElementById("show");
   var againBtn = document.getElementById("again");
@@ -22,6 +24,7 @@
   var names = { en: "English", es: "Spanish", nl: "Dutch" };
   title.textContent = (names[track] || "Exam") + " exam";
   document.getElementById("return-button").href = home;
+  document.getElementById("fav-page").href = "fav.html?v=1&track=" + track;
 
   var voiceSettings = {};
   try { voiceSettings = JSON.parse(localStorage.getItem("flashcardVoiceSettings") || "{}"); } catch (e) {}
@@ -32,6 +35,7 @@
   var knew = 0;
   var again = 0;
   var current = null;
+  var favMap = {};
 
   function extraId(name) {
     return ("x" + String(name).toLowerCase().replace(/[^a-z0-9]/g, "")).slice(0, 24);
@@ -67,6 +71,13 @@
     score.textContent = "I knew it: " + knew + "    Again: " + again;
   }
 
+  function paintFav() {
+    var on = current && favMap[current.key] && favMap[current.key].on;
+    favBtn.hidden = !current;
+    favBtn.classList.toggle("on", !!on);
+    favBtn.textContent = on ? "Saved" : "Favorite";
+  }
+
   function face(lang) {
     var text = (current && current.card[lang]) || "";
     langLabel.textContent = window.Pages.names[lang] || lang;
@@ -86,6 +97,7 @@
     showBtn.hidden = true;
     againBtn.hidden = true;
     knewBtn.hidden = true;
+    favBtn.hidden = true;
     empty.hidden = false;
     empty.textContent = "Finished. I knew it: " + knew + ". Again: " + again + ".";
     retryBtn.hidden = false;
@@ -113,10 +125,12 @@
     showBtn.hidden = false;
     againBtn.hidden = false;
     knewBtn.hidden = false;
+    resetBtn.hidden = false;
     showBtn.textContent = nextLabel();
     from.textContent = current.from;
     face(langs[0]);
     paintScore();
+    paintFav();
   }
 
   function reveal() {
@@ -146,6 +160,8 @@
       showBtn.hidden = true;
       againBtn.hidden = true;
       knewBtn.hidden = true;
+      favBtn.hidden = true;
+      resetBtn.hidden = true;
       retryBtn.hidden = true;
       empty.hidden = false;
       empty.textContent = "No words yet.";
@@ -155,6 +171,24 @@
     showCard();
   }
 
+  resetBtn.onclick = function (e) {
+    e.stopPropagation();
+    knew = 0;
+    again = 0;
+    paintScore();
+  };
+  favBtn.onclick = function (e) {
+    e.stopPropagation();
+    if (!current || !window.Pages.toggleFav) return;
+    favBtn.disabled = true;
+    window.Pages.toggleFav(track, current).then(function (map) {
+      favMap = map || favMap;
+      favBtn.disabled = false;
+      paintFav();
+    }).catch(function () {
+      favBtn.disabled = false;
+    });
+  };
   showBtn.onclick = function (e) {
     e.stopPropagation();
     reveal();
@@ -179,11 +213,13 @@
       if (hidden[String(index)]) return;
       items.push({
         from: part.name,
-        card: copyCard(card, edits[String(index)] || null)
+        card: copyCard(card, edits[String(index)] || null),
+        key: window.Pages.favKey(copyCard(card, edits[String(index)] || null), langs)
       });
     });
     ((extra && extra.cards) || []).forEach(function (card) {
-      items.push({ from: part.name, card: copyCard(card, null) });
+      var extraCard = copyCard(card, null);
+      items.push({ from: part.name, card: extraCard, key: window.Pages.favKey(extraCard, langs) });
     });
     return items;
   }
@@ -208,7 +244,8 @@
       jobs.push(window.Pages.open(page.id).then(function (full) {
         if (!full || !(full.cards || []).length) return [];
         return full.cards.map(function (card) {
-          return { from: full.title || "My page", card: copyCard(card, null) };
+          var saved = copyCard(card, null);
+          return { from: full.title || "My page", card: saved, key: window.Pages.favKey(saved, langs) };
         });
       }));
     });
@@ -218,6 +255,10 @@
     groups.forEach(function (group) {
       (group || []).forEach(function (item) { items.push(item); });
     });
+    window.Pages.loadFavs(track).then(function (map) {
+      favMap = map || {};
+      if (current) paintFav();
+    }).catch(function () {});
     start(items);
   }).catch(function () {
     score.textContent = "";
