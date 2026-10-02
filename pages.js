@@ -606,6 +606,121 @@
     });
   }
 
+  var favState = {};
+  var favReady = {};
+
+  function loadFavCache() {
+    try {
+      var saved = JSON.parse(localStorage.getItem("schoolFavs") || "{}");
+      if (saved && typeof saved === "object") favState = saved;
+    } catch (e) {}
+  }
+
+  function saveFavCache() {
+    try { localStorage.setItem("schoolFavs", JSON.stringify(favState)); } catch (e) {}
+  }
+
+  function favKey(card, langs) {
+    var raw = (langs || []).map(function (lang) {
+      return String((card && card[lang]) || "").replace(/\s+/g, " ").trim();
+    }).join("\n");
+    var hash = 2166136261;
+    var i;
+    for (i = 0; i < raw.length; i++) {
+      hash ^= raw.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+  }
+
+  function favCountKey(track) { return "school_fv_" + track + "_n"; }
+  function favChunkKey(track, i) { return "school_fv_" + track + "_" + i; }
+
+  function copyFavCard(card, langs) {
+    var out = {};
+    (langs || []).forEach(function (lang) {
+      out[lang] = String((card && card[lang]) || "").slice(0, 500);
+    });
+    return out;
+  }
+
+  function readFavRemote(track) {
+    return readPacked(favCountKey(track), function (i) { return favChunkKey(track, i); }).then(function (raw) {
+      if (!raw) return [];
+      try {
+        var list = JSON.parse(unb64url(raw));
+        return Array.isArray(list) ? list : [];
+      } catch (e) {
+        return [];
+      }
+    });
+  }
+
+  function writeFavRemote(track, map) {
+    var list = [];
+    Object.keys(map || {}).forEach(function (id) {
+      var item = map[id];
+      if (!item || !item.id) return;
+      list.push({
+        id: item.id,
+        t: item.t || 0,
+        on: !!item.on,
+        from: item.from || "",
+        card: item.card || {}
+      });
+    });
+    list.sort(function (a, b) { return (b.t || 0) - (a.t || 0); });
+    if (list.length > 80) list = list.slice(0, 80);
+    return writePacked(favCountKey(track), function (i) { return favChunkKey(track, i); }, b64url(JSON.stringify(list)));
+  }
+
+  function ensureFavs(track) {
+    if (!TRACKS[track]) return Promise.resolve({});
+    if (!favState[track]) favState[track] = {};
+    if (favReady[track]) return favReady[track];
+    favReady[track] = readFavRemote(track).then(function (list) {
+      list.forEach(function (item) {
+        if (!item || !item.id) return;
+        var prev = favState[track][item.id];
+        if (!prev || (item.t || 0) >= (prev.t || 0)) favState[track][item.id] = item;
+      });
+      saveFavCache();
+      return favState[track];
+    });
+    return favReady[track];
+  }
+
+  function favList(track) {
+    var map = favState[track] || {};
+    return Object.keys(map).map(function (id) { return map[id]; }).filter(function (item) {
+      return item && item.on && item.card;
+    }).sort(function (a, b) { return (b.t || 0) - (a.t || 0); });
+  }
+
+  function loadFavs(track) {
+    return enqueue(function () { return ensureFavs(track); });
+  }
+
+  function toggleFav(track, item) {
+    return enqueue(function () {
+      return ensureFavs(track).then(function () {
+        var langs = TRACKS[track].langs;
+        var id = (item && (item.key || item.id)) || favKey(item && item.card, langs);
+        var prev = favState[track][id];
+        favState[track][id] = {
+          id: id,
+          t: now(),
+          on: !(prev && prev.on),
+          from: String((item && item.from) || (prev && prev.from) || "").slice(0, 40),
+          card: copyFavCard((item && item.card) || (prev && prev.card) || {}, langs)
+        };
+        saveFavCache();
+        return writeFavRemote(track, favState[track]).then(function () { return favState[track]; });
+      });
+    });
+  }
+
+  loadFavCache();
   loadCache();
   wirePartDeletes();
   var ready = enqueue(sync);
@@ -630,6 +745,10 @@
     partHome: partHome,
     askHidePart: askHidePart,
     askSure: askSure,
-    onChange: function (fn) { listeners.push(fn); }
+    onChange: function (fn) { listeners.push(fn); },
+    favKey: favKey,
+    loadFavs: loadFavs,
+    toggleFav: toggleFav,
+    favList: favList
   };
 })();

@@ -112,7 +112,10 @@
 </head>
 <body>
   <h1>English Pages</h1>
-  <a class="exam" href="exam.html?v=9&track=en">Exam</a>
+  <div class="lang-actions">
+    <a class="exam" href="exam.html?v=10&track=en">Exam</a>
+    <a class="fav-link" href="fav.html?v=1&track=en">Favorites</a>
+  </div>
   <p class="hint">Random cards from every part. Check if you remember them.</p>
 
   <div class="scroll-buffer"></div>
@@ -199,7 +202,7 @@
     document.addEventListener('scroll',()=>document.body.classList.
       toggle('scrolled',window.scrollY>40));
   </script>
-<link rel="stylesheet" href="app.css?v=2">
+<link rel="stylesheet" href="app.css?v=3">
 <script src="app.js?v=1"></script>
 </body>
 </html>
