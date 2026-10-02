@@ -223,6 +223,24 @@
       emit();
       enqueue(sync);
     },
+    remember: function (pageFile, cardKey) {
+      var page = storageKey(pageFile);
+      var key = String(cardKey);
+      if (!page || !key) return;
+      if (!state.cards[page]) state.cards[page] = {};
+      var bag = state.cards[page];
+      if (bag[key] && bag[key].v) return;
+      bag[key] = { v: true, t: now() };
+      saveCache();
+      emit();
+      enqueue(function () {
+        return syncBag(
+          "school_c_" + page,
+          function () { return state.cards[page] || {}; },
+          function (next) { state.cards[page] = next; }
+        );
+      });
+    },
     onChange: function (fn) { listeners.push(fn); }
   };
 })();
