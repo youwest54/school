@@ -143,7 +143,7 @@ body.scrolled #return-button{
 
 <script src="marks.js?v=5"></script>
 <script src="voice.js?v=5"></script>
-<script src="pages.js?v=8"></script>
+<script src="pages.js?v=10"></script>
 <script src="addword.js?v=6"></script>
 <script>
 const LANGS = ["ar", "en", "fr"];
@@ -247,11 +247,13 @@ window.addEventListener('DOMContentLoaded',()=>{
 document.addEventListener('scroll',()=>document.body.classList.toggle('scrolled',window.scrollY>40));
 
 /* ───────── Return button handler ───────── */
-document.getElementById('return-button').onclick=()=>{{
-  if(history.length>1) history.back();
-  else location.href='index.html';   /* adjust if "home" differs */
-}};
+document.getElementById('return-button').onclick=()=>{
+  var name='';
+  try{name=decodeURIComponent(location.pathname.split('/').pop()||'');}
+  catch(e){name=location.pathname.split('/').pop()||'';}
+  location.href=(window.Pages&&window.Pages.partHome)?window.Pages.partHome(name):(/_nl\.html$/i.test(name)?'index_nl.html?v=23':'index_en.html?v=23');
+};
 </script>
 <link rel="stylesheet" href="app.css?v=2">
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body></html>

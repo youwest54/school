@@ -4,7 +4,7 @@
   var track = params.get("track");
   if (!window.Pages.tracks[track]) track = "en";
   var langs = window.Pages.tracks[track].langs;
-  var homes = { en: "index_en.html", es: "index_es.html", nl: "index_nl.html" };
+  var homes = { en: "index_en.html?v=23", es: "index_es.html?v=23", nl: "index_nl.html?v=23" };
   var home = homes[track] || "index.html";
   var title = document.getElementById("title");
   var score = document.getElementById("score");
@@ -24,7 +24,7 @@
   var names = { en: "English", es: "Spanish", nl: "Dutch" };
   title.textContent = (names[track] || "Exam") + " exam";
   document.getElementById("return-button").href = home;
-  document.getElementById("fav-page").href = "fav.html?v=2&track=" + track;
+  document.getElementById("fav-page").href = "fav.html?v=3&track=" + track;
 
   var voiceSettings = {};
   try { voiceSettings = JSON.parse(localStorage.getItem("flashcardVoiceSettings") || "{}"); } catch (e) {}
