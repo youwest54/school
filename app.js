@@ -56,12 +56,29 @@
 
   reopenLast();
 
+  function languageHome(file) {
+    file = String(file || "");
+    if (window.Pages && window.Pages.partHome && window.Pages.isPart && window.Pages.isPart(file)) {
+      return window.Pages.partHome(file);
+    }
+    if (/_nl\.html$/i.test(file) || /^[1-4]_nl\.html$/i.test(file)) return "index_nl.html?v=23";
+    if (/_en\.html$/i.test(file) || /^part /i.test(file)) return "index_en.html?v=23";
+    return "";
+  }
+
   var back = document.getElementById("return-button");
   var flip = document.getElementById("flip-all-button");
   var voice = document.getElementById("settings-button");
   if (back) {
     back.textContent = "Back";
     back.setAttribute("aria-label", "Back");
+    if (back.tagName === "BUTTON") {
+      back.onclick = function (e) {
+        if (e) e.preventDefault();
+        var home = languageHome(currentPage().split("?")[0]);
+        location.href = home || "index.html";
+      };
+    }
   }
   if (flip) {
     flip.textContent = "Flip";
