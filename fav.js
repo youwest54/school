@@ -4,7 +4,7 @@
   var track = params.get("track");
   if (!window.Pages.tracks[track]) track = "en";
   var langs = window.Pages.tracks[track].langs;
-  var homes = { en: "index_en.html?v=23", es: "index_es.html?v=23", nl: "index_nl.html?v=23" };
+  var homes = { en: "index_en.html?v=24", es: "index_es.html?v=24", nl: "index_nl.html?v=24" };
   var names = { en: "English", es: "Spanish", nl: "Dutch" };
   var title = document.getElementById("title");
   var list = document.getElementById("list");

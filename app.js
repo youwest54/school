@@ -1,7 +1,9 @@
 /* Clear names for the bottom bar buttons, and reopen the last page. */
 (function () {
   var LAST_KEY = "schoolLastPage";
+  var LANG_KEY = "schoolLastLang";
   var SESSION_KEY = "schoolLastSession";
+  var LANG_VER = "24";
 
   function currentPage() {
     var name = "";
@@ -13,9 +15,17 @@
     return name + location.search;
   }
 
+  function fileName(page) {
+    return String(page || "").split("?")[0];
+  }
+
   function isHome(page) {
-    var file = String(page || "").split("?")[0];
+    var file = fileName(page);
     return !file || file === "index.html" || file === "/";
+  }
+
+  function isLangIndex(page) {
+    return /^(index_en|index_es|index_nl)\.html$/i.test(fileName(page));
   }
 
   function safePage(page) {
@@ -26,10 +36,38 @@
     return page;
   }
 
+  function langHomeFromFile(file) {
+    file = fileName(file);
+    if (file === "index_nl.html" || /_nl\.html$/i.test(file) || /^[1-4]_nl\.html$/i.test(file)) {
+      return "index_nl.html?v=" + LANG_VER;
+    }
+    if (file === "index_es.html") return "index_es.html?v=" + LANG_VER;
+    if (file === "index_en.html" || /_en\.html$/i.test(file) || /^part /i.test(file)) {
+      return "index_en.html?v=" + LANG_VER;
+    }
+    var track = /(?:^|[?&])track=(en|es|nl)/i.exec(location.search || "");
+    if (track) return "index_" + track[1].toLowerCase() + ".html?v=" + LANG_VER;
+    if (window.Pages && window.Pages.partHome && window.Pages.isPart && window.Pages.isPart(file)) {
+      return window.Pages.partHome(file);
+    }
+    return "";
+  }
+
+  function rememberLang() {
+    var home = langHomeFromFile(currentPage());
+    if (!home) return;
+    try { localStorage.setItem(LANG_KEY, home); } catch (e) {}
+  }
+
+  function rememberedLang() {
+    try { return safePage(localStorage.getItem(LANG_KEY) || ""); } catch (e) { return ""; }
+  }
+
   function rememberHere() {
     var page = safePage(currentPage());
     if (!page) return;
     try { localStorage.setItem(LAST_KEY, page); } catch (e) {}
+    rememberLang();
   }
 
   function reopenLast() {
@@ -56,15 +94,23 @@
 
   reopenLast();
 
-  function languageHome(file) {
-    file = String(file || "");
-    if (window.Pages && window.Pages.partHome && window.Pages.isPart && window.Pages.isPart(file)) {
-      return window.Pages.partHome(file);
+  function goLanguageBack(e) {
+    var file = fileName(currentPage());
+    if (isHome(file) || isLangIndex(file)) return false;
+    var home = langHomeFromFile(file) || rememberedLang() || ("index_en.html?v=" + LANG_VER);
+    if (e) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
     }
-    if (/_nl\.html$/i.test(file) || /^[1-4]_nl\.html$/i.test(file)) return "index_nl.html?v=23";
-    if (/_en\.html$/i.test(file) || /^part /i.test(file)) return "index_en.html?v=23";
-    return "";
+    location.replace(home);
+    return true;
   }
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target && e.target.closest && e.target.closest("#return-button");
+    if (!btn) return;
+    goLanguageBack(e);
+  }, true);
 
   var back = document.getElementById("return-button");
   var flip = document.getElementById("flip-all-button");
@@ -74,9 +120,7 @@
     back.setAttribute("aria-label", "Back");
     if (back.tagName === "BUTTON") {
       back.onclick = function (e) {
-        if (e) e.preventDefault();
-        var home = languageHome(currentPage().split("?")[0]);
-        location.href = home || "index.html";
+        if (!goLanguageBack(e)) location.href = "index.html";
       };
     }
   }
