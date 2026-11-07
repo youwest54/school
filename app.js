@@ -1,5 +1,61 @@
-/* Clear names for the bottom bar buttons. */
+/* Clear names for the bottom bar buttons, and reopen the last page. */
 (function () {
+  var LAST_KEY = "schoolLastPage";
+  var SESSION_KEY = "schoolLastSession";
+
+  function currentPage() {
+    var name = "";
+    try {
+      name = decodeURIComponent(location.pathname.split("/").pop() || "");
+    } catch (e) {
+      name = location.pathname.split("/").pop() || "";
+    }
+    return name + location.search;
+  }
+
+  function isHome(page) {
+    var file = String(page || "").split("?")[0];
+    return !file || file === "index.html" || file === "/";
+  }
+
+  function safePage(page) {
+    page = String(page || "");
+    if (!page || page.indexOf("://") !== -1 || page.indexOf("//") === 0) return "";
+    if (page.indexOf("..") !== -1) return "";
+    if (!/^[a-zA-Z0-9 _.-]+\.html(\?[a-zA-Z0-9_=&%+.-]*)?$/.test(page)) return "";
+    return page;
+  }
+
+  function rememberHere() {
+    var page = safePage(currentPage());
+    if (!page) return;
+    try { localStorage.setItem(LAST_KEY, page); } catch (e) {}
+  }
+
+  function reopenLast() {
+    if (!isHome(currentPage())) {
+      try { sessionStorage.setItem(SESSION_KEY, "1"); } catch (e) {}
+      rememberHere();
+      return;
+    }
+    var seen = false;
+    try { seen = sessionStorage.getItem(SESSION_KEY) === "1"; } catch (e) {}
+    if (seen) {
+      rememberHere();
+      return;
+    }
+    try { sessionStorage.setItem(SESSION_KEY, "1"); } catch (e) {}
+    var last = "";
+    try { last = safePage(localStorage.getItem(LAST_KEY) || ""); } catch (e) {}
+    if (!last || isHome(last)) {
+      rememberHere();
+      return;
+    }
+    location.replace(last);
+  }
+
+  reopenLast();
+
   var back = document.getElementById("return-button");
   var flip = document.getElementById("flip-all-button");
   var voice = document.getElementById("settings-button");
