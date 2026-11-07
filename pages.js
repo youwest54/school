@@ -304,7 +304,7 @@
   }
 
   function partHome(name) {
-    return (PART_FILES[name] === "nl" ? "index_nl.html" : "index_en.html") + "?v=23";
+    return (PART_FILES[name] === "nl" ? "index_nl.html" : "index_en.html") + "?v=24";
   }
 
   function hidePart(name) {
